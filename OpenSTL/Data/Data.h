@@ -7,3 +7,7 @@
 #define __OPENSTL_DATA_EXPORT __declspec(dllimport)
 #endif
 #endif
+
+#ifdef _MSC_VER
+#pragma warning (disable : 4251)
+#endif  // #ifdef MSVC
