@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Data.h"
+
 #include <Math/Vector3d.h>
 
 namespace OpenSTL {

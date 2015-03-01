@@ -1,6 +1,9 @@
 #pragma once
 
+#include "Data.h"
+
 #include <Math/Vector3d.h>
+
 
 namespace OpenSTL {
 namespace Data {
@@ -9,6 +12,7 @@ class Point;
 
 class __OPENSTL_DATA_EXPORT Triangle
 {
+public:
     friend class Stl;
 
 public:
