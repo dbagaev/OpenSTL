@@ -2,6 +2,8 @@
 
 #include "Data.h"
 
+#include "Data.h"
+
 #include "../Math/Vector3d.h"
 
 namespace OpenSTL {
