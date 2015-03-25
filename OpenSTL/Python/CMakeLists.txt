@@ -2,7 +2,10 @@ file(GLOB ALL_SOURCE *.h *.cpp)
 
 source_group("\\" FILES ${ALL_SOURCE})
 
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
+find_package(boost)
+
+include_directories(${CMAKE_CURRENT_BINARY_DIR} ${Boost_INCLUDE_DIR} ${Python_INCLUDE_DIR})
+link_directories(${LINK_DIRECTORIES} ${Boost_LIB_DIR} ${Python_LIB_DIR})
 
 add_library(Python SHARED ${ALL_SOURCE})
 add_library(OpenSTL.Python ALIAS Python)

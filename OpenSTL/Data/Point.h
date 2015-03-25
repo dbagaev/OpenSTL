@@ -1,12 +1,14 @@
 #pragma once
 
-#include <Math/Vector3d.h>
+#include "Data.h"
+
+#include "../Math/Vector3d.h"
 
 namespace OpenSTL {
 
 namespace Data {
 
-class Point 
+class __OPENSTL_DATA_EXPORT Point
 {
 public:
     friend class Stl;

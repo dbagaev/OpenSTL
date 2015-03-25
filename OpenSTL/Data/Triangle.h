@@ -1,6 +1,8 @@
 #pragma once
 
-#include <Math/Vector3d.h>
+#include "Data.h"
+
+#include "../Math/Vector3d.h"
 
 namespace OpenSTL {
 namespace Data {

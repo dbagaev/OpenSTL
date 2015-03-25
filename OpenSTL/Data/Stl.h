@@ -2,7 +2,7 @@
 
 #include "Data.h"
 
-#include <Math/Vector3d.h>
+#include "../Math/Vector3d.h"
 
 #include "Point.h"
 #include "Triangle.h"
@@ -34,6 +34,9 @@ public:
     Triangle * addTriangle(const Math::Vector3dDouble & p0, const Math::Vector3dDouble & p1, const Math::Vector3dDouble & p2);
     Triangle * addTriangle(const Triangle * p_tri);
     void removeTriangle(Triangle * p_tri);
+
+    size_t getNumberPoints() const { return _Points.size(); }
+    size_t getNumberTriangles() const { return _Triangles.size(); }
 
     // Triangles
     //Triangle * addTriangle();
