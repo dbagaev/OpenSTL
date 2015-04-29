@@ -56,8 +56,6 @@ bool ReadBinaryStl(std::istream & is, Stl & o_stl)
         short int attr;
     };
 
-    std::cout << sizeof(TriangleData) << std::endl;
-
     if (sizeof(TriangleData) != 50)
         return false;
 
