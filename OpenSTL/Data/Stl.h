@@ -7,8 +7,11 @@
 #include "Point.h"
 #include "Triangle.h"
 
+#include "Attributes.h"
+
 #include <set>
 #include <list>
+#include <memory>
 
 namespace OpenSTL { 
 namespace Data {
@@ -40,6 +43,12 @@ public:
 
     // Triangles
     //Triangle * addTriangle();
+
+    template <typename DataType>
+    AttributesImpl<DataType, Point> * createPointAttributes() { return new AttributesImpl<DataType, Point>(_PointsAttributesAllocMap); }
+    template <typename DataType>
+    AttributesImpl<DataType, Triangle> * createTriangleAttributes() { return new AttributesImpl<DataType, Point>(_TrianglesAttributesAllocMap); }
+
 private:
     std::set<Point *, Point::ComparePosition> _Points;
     std::set<Triangle *> _Triangles;
@@ -50,6 +59,9 @@ private:
     std::list<Point> _PointsPool;
     bool isMyPoint(const Point * p_point) const;
     Point * findPoint(const Math::Vector3dDouble & position) const;
+
+    std::unique_ptr<AttributesAllocMap<Point>> _PointsAttributesAllocMap;
+    std::unique_ptr<AttributesAllocMap<Triangle>> _TrianglesAttributesAllocMap;
 };
 
 }  // namespace Data

@@ -12,3 +12,6 @@ add_library(OpenSTL.Data ALIAS Data)
 target_link_libraries(Data OpenSTL.Math)
 
 set_target_properties(Data PROPERTIES OUTPUT_NAME openstl-data)
+
+
+add_subdirectory(Tests)
