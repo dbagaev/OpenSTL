@@ -9,6 +9,8 @@
 
 #include "Attributes.h"
 
+#include <boost/iterator/iterator_facade.hpp>
+
 #include <set>
 #include <list>
 #include <memory>
@@ -40,6 +42,30 @@ public:
 
     size_t getNumberPoints() const { return _Points.size(); }
     size_t getNumberTriangles() const { return _Triangles.size(); }
+
+    class PointIterator : public boost::iterator_facade < PointIterator, Point, boost::forward_traversal_tag >
+    {
+    friend class Stl;
+
+    private:
+        typedef std::set<Point *, Point::ComparePosition>::iterator InternalIterator;
+
+        InternalIterator _Iter;
+
+        PointIterator(InternalIterator it) : _Iter(it) {}
+
+        void increment() { ++_Iter; }
+
+        bool equal(const PointIterator & other) const
+          {
+          return _Iter == other._Iter;
+          }
+
+        Point & dereference() const { return **_Iter; }
+    };
+
+    PointIterator beginPoint() { return PointIterator(_Points.begin()); }
+    PointIterator endPoint() { return PointIterator(_Points.end()); }
 
     // Triangles
     //Triangle * addTriangle();

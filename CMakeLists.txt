@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.1)
 project(OpenSTL)
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
@@ -16,7 +16,13 @@ if ( MSVC )
 
 endif ( MSVC )
 
+if ( UNIX )
+    set( CMAKE_CXX_FLAGS -std=c++11 ${CMAKE_CXX_FLAGS} )
+endif ( UNIX )
+
 set ( BUILD_UNIT_TESTS CACHE TRUE BOOL "Build unit tests on GTest platform" )
+
+find_package( Boost )
 
 if ( BUILD_UNIT_TESTS )
 

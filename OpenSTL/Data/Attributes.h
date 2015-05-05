@@ -13,11 +13,12 @@ class AttributeOwner
     friend class StlAttributes;
 
     template <typename DataType>
-    DataType getData(size_t i_offset) const
+    DataType getData(const size_t i_offset) const
     {
-        static auto ptr = getPtr(i_offset, sizeof(DataType));
+        static const size_t size_of_data = static_cast<size_t>(sizeof(DataType));
+        const auto ptr = const_cast<AttributeOwner *>(this)->getPtr(i_offset, size_of_data);
         if (ptr != nullptr)
-          return *static_cast<DataType *>();
+          return *static_cast<DataType *>(ptr);
         else
           return DataType();
     }
@@ -25,7 +26,8 @@ class AttributeOwner
     template <typename DataType>
     void setData(size_t i_offset, DataType i_value)
     {
-        static auto ptr = getPtr(i_offset, sizeof(DataType));
+        static const size_t size_of_data = static_cast<size_t>(sizeof(DataType));
+        const auto ptr = getPtr(i_offset, size_of_data);
         if (ptr == nullptr)
         {
             // Allocate one more block
@@ -128,10 +130,10 @@ public:
         }
 
         // Mark bits as filled
-        for (size_t i = sp_t; i < sp_t + i_size_bytes; ++i)
+        for (size_t i = st_p; i < st_p + i_size_bytes; ++i)
             _FreeFlags[i] = true;
 
-        return sp_t;
+        return st_p;
     }
 
     void free(size_t i_offset, size_t i_size_bytes)
@@ -155,7 +157,7 @@ template <typename DataType, typename Key>
 class AttributesImpl
 {
 public:
-    AttributesImpl(AttributesAllocMap * i_mgr) : _AllocMap(i_mgr)
+    AttributesImpl(AttributesAllocMap<Key> * i_mgr) : _AllocMap(i_mgr)
     {
         _Offset = _AllocMap->allocate(dataSize());
     }
@@ -167,17 +169,17 @@ public:
 
     DataType getValue(const Key * p_key)
     {
-        static_cast<AttributeOwner *>(p_key)->getData(_Offset);
+        static_cast<const AttributeOwner *>(p_key)->getData<DataType>(_Offset);
     }
 
     void setValue(const Key * p_key, DataType value)
     {
-        static_cast<AttributeOwner *>(p_key)->setData(_Offset, i_value);
+        static_cast<AttributeOwner *>(p_key)->setData(_Offset, value);
     }
 
     static size_t dataSize()
     {
-        return sizeof(DataSize);
+        return sizeof(DataType);
     }
 
 protected:
@@ -185,7 +187,7 @@ protected:
 
 private:
     size_t _Offset;
-    AttributesAllocMap _AllocMap;
+    AttributesAllocMap<Key> _AllocMap;
 };
 
 }  // namespace Data

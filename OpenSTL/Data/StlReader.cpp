@@ -2,6 +2,8 @@
 
 #include "Stl.h"
 
+#include <cstring>
+
 using namespace OpenSTL::Data;
 
 namespace OpenSTL {
