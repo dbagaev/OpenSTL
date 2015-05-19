@@ -2,7 +2,7 @@ file(GLOB ALL_SOURCE *.h *.cpp)
 
 source_group("\\" FILES ${ALL_SOURCE})
 
-find_package(boost)
+find_package(Boost REQUIRED)
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/..)
 include_directories(${Boost_INCLUDE_DIR} ${Python_INCLUDE_DIR})

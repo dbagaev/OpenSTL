@@ -14,5 +14,7 @@ target_link_libraries(Data OpenSTL.Math)
 
 set_target_properties(Data PROPERTIES OUTPUT_NAME openstl-data)
 
-
-add_subdirectory(Tests)
+if ( BUILD_TESTING )
+	add_subdirectory(Tests)
+endif ( BUILD_TESTING )
+	

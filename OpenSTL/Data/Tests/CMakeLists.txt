@@ -12,8 +12,16 @@ target_link_libraries(Data.Tests OpenSTL.Data)
 
 target_link_libraries(Data.Tests gtest gtest_main)
 
+if ( UNIX )
+    target_link_libraries(Data.Tests pthread)
+endif ( UNIX )
+
 set_target_properties(Data.Tests PROPERTIES OUTPUT_NAME openstl-data-tests)
 
-add_test ( OpenSTL_Data_Tests Data.Tests )
+# Run tests after build
+get_target_property(TEST_RUNTIME_OUTPUT_DIRECTORY Data.Tests RUNTIME_OUTPUT_DIRECTORY)
+add_custom_command ( TARGET Data.Tests
+                     POST_BUILD
+                     COMMAND "${TEST_RUNTIME_OUTPUT_DIRECTORY}/openstl-data-tests" )
 
 

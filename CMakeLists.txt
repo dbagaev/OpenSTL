@@ -17,16 +17,17 @@ if ( MSVC )
 endif ( MSVC )
 
 if ( UNIX )
-    set( CMAKE_CXX_FLAGS -std=c++11 ${CMAKE_CXX_FLAGS} )
+    set( CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}" )
+    message( ${CMAKE_CXX_FLAGS} )
 endif ( UNIX )
-
-set ( BUILD_UNIT_TESTS CACHE TRUE BOOL "Build unit tests on GTest platform" )
 
 find_package( Boost )
 
-if ( BUILD_UNIT_TESTS )
+if ( BUILD_TESTING )
 
     find_package( GTest )
+    
+    
 
     if ( NOT GTEST_FOUND )
         set ( GTEST_INCLUDE_DIRS $ENV{GTEST_INCLUDE_DIRS} )
@@ -36,7 +37,7 @@ if ( BUILD_UNIT_TESTS )
             set ( GTEST_LIBRARIES "$ENV{GTEST_LIBRARY}" )
         endif ( MSVC )
     endif( NOT GTEST_FOUND )
-endif ( BUILD_UNIT_TESTS )
+endif ( BUILD_TESTING )
 
 add_subdirectory(OpenSTL )
 add_subdirectory(Tests )
