@@ -27,6 +27,7 @@ private:
     typedef std::vector<Neighbour *> NeighbourData;
     typedef NeighbourData NeighbourDataPtr;
 
+protected:
     Stl * _Stl;
 
 public:

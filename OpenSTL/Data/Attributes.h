@@ -10,7 +10,7 @@ namespace Data {
 // This class holds attributes and allows easy access to attribute data
 class AttributeOwner
 {
-    template <typename Impl, typename TraitsType>
+    template <typename TraitsType>
     friend class Attribute;
 
     template <typename Key>
@@ -175,18 +175,22 @@ public:
 	{
 		return static_cast<StorageType>(data);
 	}
+
+	static StorageType defaultValue()
+	{
+	    return 0;
+	}
 };
 
 // This class is attribute implementation
-template <typename TraitsType, typename Impl>
-class Attribute : public Impl, private TraitsType
+template <typename TraitsType>
+class Attribute
 {
 public:
-	using typename TraitsType::KeyType;
-	using typename TraitsType::DataType;
+	typedef typename TraitsType::KeyType KeyType;
+	typedef typename TraitsType::DataType DataType;
 
-	template <typename... ImplArgs>
-    Attribute(AttributesAllocMap<KeyType> * i_mgr, ImplArgs... impl_args) : _AllocMap(*i_mgr), Impl(impl_args...)
+    Attribute(AttributesAllocMap<KeyType> * i_mgr) : _AllocMap(*i_mgr)
     {
         _Offset = _AllocMap.allocate(dataSize());
     }
@@ -198,12 +202,17 @@ public:
 
     DataType getValue(const KeyType * p_key)
     {
-        return this->makeData(static_cast<const AttributeOwner *>(p_key)->getData<typename TraitsType::StorageType>(_Offset));
+        return TraitsType::makeData(getStorageValue(p_key));
     }
 
     void setValue(KeyType * p_key, DataType value)
     {
-        static_cast<AttributeOwner *>(p_key)->setData(_Offset, this->makeStorage(value));
+        setStorageValue(p_key, TraitsType::makeStorage(value));
+    }
+
+    void setDefaultValue(KeyType * p_key)
+    {
+        setStorageValue(p_key, TraitsType::defaultValue());
     }
 
     static size_t dataSize()
@@ -213,6 +222,19 @@ public:
 
 protected:
     Attribute(size_t i_offset) : _Offset(i_offset) {}
+
+    typedef typename TraitsType::StorageType StorageType;
+
+    void setStorageValue(KeyType * p_key, StorageType value)
+    {
+        static_cast<AttributeOwner *>(p_key)->setData(_Offset, value);
+    }
+
+    StorageType getStorageValue(const KeyType * p_key)
+    {
+        return static_cast<const AttributeOwner *>(p_key)->getData<StorageType>(_Offset);
+    }
+
 
 private:
     size_t _Offset;

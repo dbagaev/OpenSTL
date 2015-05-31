@@ -18,4 +18,13 @@ TEST(Test_PointNeighbourTriangles, Simple)
 
 	auto neighbours = stl.createPointAttributes<Data::PointNeighbourTriangles>();
 	neighbours->update();
+
+	EXPECT_EQ(1, neighbours->getValue(ps[0]).size());
+	EXPECT_EQ(1, neighbours->getValue(ps[1]).size());
+	EXPECT_EQ(1, neighbours->getValue(ps[2]).size());
+
+    EXPECT_EQ(p_tri, neighbours->getValue(ps[0]).at(0));
+    EXPECT_EQ(p_tri, neighbours->getValue(ps[1]).at(0));
+    EXPECT_EQ(p_tri, neighbours->getValue(ps[2]).at(0));
+
 }
