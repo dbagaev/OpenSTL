@@ -70,10 +70,10 @@ public:
     // Triangles
     //Triangle * addTriangle();
 
-    template <typename DataType>
-    AttributesImpl<DataType, Point> * createPointAttributes() { return new AttributesImpl<DataType, Point>(_PointsAttributesAllocMap); }
-    template <typename DataType>
-    AttributesImpl<DataType, Triangle> * createTriangleAttributes() { return new AttributesImpl<DataType, Point>(_TrianglesAttributesAllocMap); }
+    template <typename AttributeType>
+    AttributeType * createPointAttributes() { return new AttributeType(&_PointsAttributesAllocMap, this); }
+    template <typename AttributeType>
+    AttributeType * createTriangleAttributes() { return new AttributeType(&_TrianglesAttributesAllocMap, this); }
 
 private:
     std::set<Point *, Point::ComparePosition> _Points;
@@ -86,9 +86,24 @@ private:
     bool isMyPoint(const Point * p_point) const;
     Point * findPoint(const Math::Vector3dDouble & position) const;
 
-    std::unique_ptr<AttributesAllocMap<Point>> _PointsAttributesAllocMap;
-    std::unique_ptr<AttributesAllocMap<Triangle>> _TrianglesAttributesAllocMap;
+    AttributesAllocMap<Point> _PointsAttributesAllocMap;
+    AttributesAllocMap<Triangle> _TrianglesAttributesAllocMap;
 };
+
+class TransparentStlAttribute
+{
+public:
+    TransparentStlAttribute(Stl *) {};
+};
+
+template <typename OwnerType, typename DataType>
+class FlagAttributeTraits : public AttributeTraits<OwnerType, DataType>
+{
+
+};
+
+typedef Attribute<FlagAttributeTraits<Point, long>, TransparentStlAttribute> PointFlagAttribute;
+typedef Attribute<FlagAttributeTraits<Triangle, long>, TransparentStlAttribute> TriangleFlagAttribute;
 
 }  // namespace Data
 }  // namespace OpenSTL

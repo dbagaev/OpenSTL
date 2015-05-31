@@ -10,7 +10,11 @@ namespace Data {
 // This class holds attributes and allows easy access to attribute data
 class AttributeOwner
 {
-    friend class StlAttributes;
+    template <typename Impl, typename TraitsType>
+    friend class Attribute;
+
+    template <typename Key>
+    friend class AttributesAllocMap;
 
     template <typename DataType>
     DataType getData(const size_t i_offset) const
@@ -18,7 +22,7 @@ class AttributeOwner
         static const size_t size_of_data = static_cast<size_t>(sizeof(DataType));
         const auto ptr = const_cast<AttributeOwner *>(this)->getPtr(i_offset, size_of_data);
         if (ptr != nullptr)
-          return *static_cast<DataType *>(ptr);
+          return * reinterpret_cast<DataType *>(ptr);
         else
           return DataType();
     }
@@ -27,7 +31,7 @@ class AttributeOwner
     void setData(size_t i_offset, DataType i_value)
     {
         static const size_t size_of_data = static_cast<size_t>(sizeof(DataType));
-        const auto ptr = getPtr(i_offset, size_of_data);
+        auto ptr = getPtr(i_offset, size_of_data);
         if (ptr == nullptr)
         {
             // Allocate one more block
@@ -43,7 +47,7 @@ class AttributeOwner
                 return;
           }
 
-        *static_cast<DataType *>(ptr) = i_value;
+        *reinterpret_cast<DataType *>(ptr) = i_value;
     }
 
     char * getPtr(size_t i_offset, size_t i_desired_size = 0)
@@ -151,43 +155,68 @@ private:
     std::vector<bool> _FreeFlags;
 };
 
+/**
+ * Attribute traits describes types of attribute
+ */
 
-// This class is concrete
-template <typename DataType, typename Key>
-class AttributesImpl
+template <typename _KeyType, typename _DataType, typename _StorageType = _DataType>
+class AttributeTraits
 {
 public:
-    AttributesImpl(AttributesAllocMap<Key> * i_mgr) : _AllocMap(i_mgr)
+	typedef _KeyType        KeyType;
+	typedef _DataType       DataType;
+	typedef _StorageType    StorageType;
+
+	static DataType makeData(StorageType storage)
+	{
+		return static_cast<DataType>(storage);
+	}
+	static StorageType makeStorage(DataType data)
+	{
+		return static_cast<StorageType>(data);
+	}
+};
+
+// This class is attribute implementation
+template <typename TraitsType, typename Impl>
+class Attribute : public Impl, private TraitsType
+{
+public:
+	using typename TraitsType::KeyType;
+	using typename TraitsType::DataType;
+
+	template <typename... ImplArgs>
+    Attribute(AttributesAllocMap<KeyType> * i_mgr, ImplArgs... impl_args) : _AllocMap(*i_mgr), Impl(impl_args...)
     {
-        _Offset = _AllocMap->allocate(dataSize());
+        _Offset = _AllocMap.allocate(dataSize());
     }
 
-    ~AttributesImpl()
+    ~Attribute()
     {
-        _AllocMap->free(_Offset, dataSize());
+        _AllocMap.free(_Offset, dataSize());
     }
 
-    DataType getValue(const Key * p_key)
+    DataType getValue(const KeyType * p_key)
     {
-        static_cast<const AttributeOwner *>(p_key)->getData<DataType>(_Offset);
+        return this->makeData(static_cast<const AttributeOwner *>(p_key)->getData<typename TraitsType::StorageType>(_Offset));
     }
 
-    void setValue(const Key * p_key, DataType value)
+    void setValue(KeyType * p_key, DataType value)
     {
-        static_cast<AttributeOwner *>(p_key)->setData(_Offset, value);
+        static_cast<AttributeOwner *>(p_key)->setData(_Offset, this->makeStorage(value));
     }
 
     static size_t dataSize()
     {
-        return sizeof(DataType);
+        return sizeof(typename TraitsType::StorageType);
     }
 
 protected:
-    AttributesImpl(size_t i_offset) : _Offset(i_offset) {}
+    Attribute(size_t i_offset) : _Offset(i_offset) {}
 
 private:
     size_t _Offset;
-    AttributesAllocMap<Key> _AllocMap;
+    AttributesAllocMap<KeyType> & _AllocMap;
 };
 
 }  // namespace Data

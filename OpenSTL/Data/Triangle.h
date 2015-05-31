@@ -2,6 +2,8 @@
 
 #include "Data.h"
 
+#include "Attributes.h"
+
 #include "../Math/Vector3d.h"
 
 namespace OpenSTL {
@@ -9,7 +11,7 @@ namespace Data {
 
 class Point;
 
-class __OPENSTL_DATA_EXPORT Triangle
+class __OPENSTL_DATA_EXPORT Triangle : public AttributeOwner
 {
     friend class Stl;
 

@@ -2,7 +2,7 @@
 
 #include "Data.h"
 
-#include "Data.h"
+#include "Attributes.h"
 
 #include "../Math/Vector3d.h"
 
@@ -10,7 +10,7 @@ namespace OpenSTL {
 
 namespace Data {
 
-class __OPENSTL_DATA_EXPORT Point
+class __OPENSTL_DATA_EXPORT Point : public AttributeOwner
 {
 public:
     friend class Stl;
