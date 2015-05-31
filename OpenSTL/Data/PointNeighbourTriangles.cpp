@@ -26,6 +26,12 @@ public:
         this->_Data[1] = reinterpret_cast<NeighbourType *>(reinterpret_cast<size_t>(this->_Data[1]) + 1);
     }
 
+    void clear()
+    {
+        if(this->_Data != nullptr)
+            this->_Data[1] = reinterpret_cast<NeighbourType *>(0);
+    }
+
     NeighbourType ** getData() { return this->_Data; }
 
 protected:
@@ -74,6 +80,12 @@ protected:
 
 void PointNeighbourTriangles::update()
 {
+    std::for_each(_Stl->beginPoint(), _Stl->endPoint(), [this](Point & point) {
+        auto p_data = getStorageValue(&point);
+        Details::NeighbourManager<Triangle> nm(p_data);
+        nm.clear();
+    });
+
     std::for_each(_Stl->beginTriangle(), _Stl->endTriangle(), [this](Triangle & tri) {
         for(size_t i = 0; i<3; ++i)
         {
