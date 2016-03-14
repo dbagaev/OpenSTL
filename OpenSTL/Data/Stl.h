@@ -14,6 +14,7 @@
 #include <set>
 #include <list>
 #include <memory>
+#include <algorithm>
 
 namespace OpenSTL { 
 namespace Data {
@@ -47,7 +48,7 @@ public:
     {
     friend class Stl;
 
-    private:
+    public:
         typedef std::set<Point *, Point::ComparePosition>::iterator InternalIterator;
 
         InternalIterator _Iter;
@@ -67,13 +68,48 @@ public:
     PointIterator beginPoint() { return PointIterator(_Points.begin()); }
     PointIterator endPoint() { return PointIterator(_Points.end()); }
 
+    class TriangleIterator : public boost::iterator_facade < TriangleIterator, Triangle, boost::forward_traversal_tag >
+    {
+    friend class Stl;
+
+    public:
+        typedef std::set<Triangle *>::iterator InternalIterator;
+
+        InternalIterator _Iter;
+
+        TriangleIterator(InternalIterator it) : _Iter(it) {}
+
+        void increment() { ++_Iter; }
+
+        bool equal(const TriangleIterator & other) const
+          {
+          return _Iter == other._Iter;
+          }
+
+        Triangle & dereference() const { return **_Iter; }
+    };
+
+    TriangleIterator beginTriangle() { return TriangleIterator(_Triangles.begin()); }
+    TriangleIterator endTriangle() { return TriangleIterator(_Triangles.end()); }
+
+
     // Triangles
     //Triangle * addTriangle();
 
-    template <typename DataType>
-    AttributesImpl<DataType, Point> * createPointAttributes() { return new AttributesImpl<DataType, Point>(_PointsAttributesAllocMap); }
-    template <typename DataType>
-    AttributesImpl<DataType, Triangle> * createTriangleAttributes() { return new AttributesImpl<DataType, Point>(_TrianglesAttributesAllocMap); }
+    template <typename AttributeType>
+    AttributeType * createPointAttributes()
+    {
+        auto p_attribute = new AttributeType(&_PointsAttributesAllocMap, this);
+        std::for_each(beginPoint(), endPoint(), [p_attribute](Point & p) { p_attribute->setDefaultValue(&p); });
+        return p_attribute;
+    }
+    template <typename AttributeType>
+    AttributeType * createTriangleAttributes()
+    {
+        auto p_attribute = new AttributeType(&_TrianglesAttributesAllocMap, this);
+        std::for_each(beginTriangle(), endTriangle(), [p_attribute](Triangle & p) { p_attribute->setDefaultValue(&p); });
+        return p_attribute;
+    }
 
 private:
     std::set<Point *, Point::ComparePosition> _Points;
@@ -86,9 +122,25 @@ private:
     bool isMyPoint(const Point * p_point) const;
     Point * findPoint(const Math::Vector3dDouble & position) const;
 
-    std::unique_ptr<AttributesAllocMap<Point>> _PointsAttributesAllocMap;
-    std::unique_ptr<AttributesAllocMap<Triangle>> _TrianglesAttributesAllocMap;
+    AttributesAllocMap<Point> _PointsAttributesAllocMap;
+    AttributesAllocMap<Triangle> _TrianglesAttributesAllocMap;
 };
+
+template <typename OwnerType, typename DataType>
+class FlagAttributeTraits : public AttributeTraits<OwnerType, DataType>
+{
+
+};
+
+template <typename OwnerType, typename DataType>
+class FlagAttribute: public Attribute<FlagAttributeTraits<OwnerType, DataType>>
+{
+public:
+    FlagAttribute(AttributesAllocMap<OwnerType> * map, Stl *) : Attribute<FlagAttributeTraits<OwnerType, DataType>>(map) {};
+};
+
+typedef FlagAttribute<Point, long> PointFlagAttribute;
+typedef FlagAttribute<Triangle, long> TriangleFlagAttribute;
 
 }  // namespace Data
 }  // namespace OpenSTL

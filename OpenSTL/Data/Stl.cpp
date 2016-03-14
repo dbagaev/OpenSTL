@@ -62,7 +62,7 @@ void Stl::removePoint(Point * p_pount)
 
 Triangle * Stl::addTriangle(const Point * p_p0, const Point * p_p1, const Point * p_p2)
 {
-    _TrianglesPool.push_back(Triangle(p_p0, p_p1, p_p2));
+    _TrianglesPool.push_back( Triangle(p_p0, p_p1, p_p2) );
     Triangle * p_tri = &_TrianglesPool.back();
     _Triangles.insert(p_tri);
 
