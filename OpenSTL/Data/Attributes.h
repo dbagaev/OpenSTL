@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Data.h"
+
 #include <stdexcept>
 #include <vector>
 
@@ -8,7 +10,7 @@ namespace OpenSTL {
 namespace Data {
 
 // This class holds attributes and allows easy access to attribute data
-class AttributeOwner
+class __OPENSTL_DATA_EXPORT AttributeOwner
 {
     template <typename TraitsType>
     friend class Attribute;

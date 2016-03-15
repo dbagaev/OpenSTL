@@ -31,6 +31,7 @@ public:
         inline bool compare(const Math::Vector3dDouble & v1, const Math::Vector3dDouble & v2) const;
     };
     
+    const Math::Vector3d<double> & position() const;
 
 private:
     Math::Vector3d<double> _Position;
