@@ -1,12 +1,14 @@
 #pragma once
 
-#include "Data/Stl.h"
+#include "Algorithm.h"
+
+#include <OpenSTL/Data/Stl.h>
 
 namespace OpenSTL {
 
 namespace Algorithm {
 
-void FindIntersections(Data::Stl & model);
+void __OPENSTL_ALGORITHM_EXPORT FindIntersections(Data::Stl & model);
 
 
 }

@@ -4,7 +4,7 @@
 
 #include <fstream>
 
-namespace OpenSTL { namespace Algorithm {
+namespace  {
 
 typedef std::pair<std::vector<char>, cl::Program::Sources> Sources;
 
@@ -21,43 +21,153 @@ void loadProgramSources(std::string file_name, Sources & sources)
     sources.second.push_back(std::make_pair(sources.first.data(), sources.first.size()));
 }
 
+cl::Context g_context;
+cl::Program g_program;
 
-void FindIntersections(Data::Stl & model)
+std::vector<cl::Device> g_devices;
+std::vector<cl::Platform> g_platforms;
+
+bool initOpenCL()
 {
-
-    // Some test OpenCL code
-    
-    
     // Find appropriate OpenCL device
-    std::vector<cl::Platform> platforms;
-    std::vector<cl::Device> devices;
-    
-    cl::Platform::get(&platforms);
-    
-    for (auto & p : platforms)
+
+    cl::Platform::get(&g_platforms);
+
+    for (auto & p : g_platforms)
     {
-        p.getDevices(CL_DEVICE_TYPE_GPU, &devices);
-    
-        if (!devices.empty())
+        p.getDevices(CL_DEVICE_TYPE_GPU, &g_devices);
+
+        if (!g_devices.empty())
             break;
     }
-    
-    cl::Context context(devices);
+
+    if (g_devices.empty())
+        return false;
+
+    cl::Context context(g_devices);
     Sources source;
-    loadProgramSources("triangles.cl", source);
+    loadProgramSources("D:\\Development\\OpenSTL\\Source\\OpenSTL\\Algorithm\\ocl_kernels\\triangles.cl", source);
 
     cl::Program program(context, source.second);
-    cl_int error = program.build(devices);
+    cl_int error = program.build(g_devices);
 
     if (error != CL_SUCCESS)
-      {
-      std::string build_log;
-      program.getBuildInfo(devices[0], CL_PROGRAM_BUILD_LOG, &build_log);
+    {
+        std::string build_log;
+        program.getBuildInfo(g_devices[0], CL_PROGRAM_BUILD_LOG, &build_log);
 
-      return;
-      //std::cout << build_log << std::endl;
-      }
+        return false;
+        //std::cout << build_log << std::endl;
+    }
 
+    g_context = context;
+    g_program = program;
+
+    return true;
+}
+
+void arrangeTriangleCoordinatesZ(std::vector<cl_float4> & p0, std::vector<cl_float4> & p1, std::vector<cl_float4> & p2)
+{
+    cl_int error;
+
+    // Allocate buffers and move data
+    size_t point_size = sizeof(cl_float4);
+    size_t num_triangles = p0.size();
+    size_t buff_size = num_triangles * point_size;
+    
+    cl::Buffer b0(g_context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, buff_size, p0.data(), &error);
+    cl::Buffer b1(g_context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, buff_size, p1.data(), &error);
+    cl::Buffer b2(g_context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, buff_size, p2.data(), &error);
+
+    // Create kernel 
+    cl::Kernel arrangePoints(g_program, "arrangeTriangleCoordinatesZ");
+
+    arrangePoints.setArg(0, b0);
+    arrangePoints.setArg(1, b1);
+    arrangePoints.setArg(2, b2);
+
+    cl::CommandQueue queue(g_context, g_devices[0]);
+
+    error = queue.enqueueWriteBuffer(b0, CL_TRUE, 0, buff_size, p0.data());
+    error = queue.enqueueWriteBuffer(b1, CL_TRUE, 0, buff_size, p1.data());
+    error = queue.enqueueWriteBuffer(b2, CL_TRUE, 0, buff_size, p2.data());
+
+    error = queue.enqueueNDRangeKernel(arrangePoints, cl::NDRange(0), cl::NDRange(num_triangles));
+
+    error = queue.enqueueReadBuffer(b0, CL_TRUE, 0, buff_size, p0.data());
+    error = queue.enqueueReadBuffer(b1, CL_TRUE, 0, buff_size, p1.data());
+    error = queue.enqueueReadBuffer(b2, CL_TRUE, 0, buff_size, p2.data());
+
+}
+
+void findIntersections(std::vector<cl_float4> & p00, std::vector<cl_float4> & p01, std::vector<cl_float4> & p02, 
+                       std::vector<cl_float4> & p10, std::vector<cl_float4> & p11, std::vector<cl_float4> & p12,
+                       std::vector<std::pair<size_t, size_t>> & result)
+{  
+    // Allocate buffers and move data
+    size_t point_size = sizeof(cl_float4);
+    size_t num_triangles0 = p00.size();
+    size_t num_triangles1 = p10.size();
+    size_t buff_size0 = num_triangles0 * point_size;
+    size_t buff_size1 = num_triangles1 * point_size;
+
+    cl_int error;
+
+    cl::Buffer b00(g_context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, buff_size0, p00.data(), &error);
+    cl::Buffer b01(g_context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, buff_size0, p01.data(), &error);
+    cl::Buffer b02(g_context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, buff_size0, p02.data(), &error);
+
+    cl::Buffer b10(g_context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, buff_size1, p10.data(), &error);
+    cl::Buffer b11(g_context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, buff_size1, p11.data(), &error);
+    cl::Buffer b12(g_context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, buff_size1, p12.data(), &error);
+
+    cl_uint res_sz = 0;
+    cl::Buffer b_res_sz(g_context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, sizeof(cl_uint), &res_sz, &error);
+
+    // Create kernel 
+    cl::Kernel kernel_findIntersections(g_program, "findTrianglesIntersections");
+
+    kernel_findIntersections.setArg(0, b00);
+    kernel_findIntersections.setArg(1, b01);
+    kernel_findIntersections.setArg(2, b02);
+
+    kernel_findIntersections.setArg(3, b10);
+    kernel_findIntersections.setArg(4, b11);
+    kernel_findIntersections.setArg(5, b12);
+
+    kernel_findIntersections.setArg(6, b_res_sz);
+
+    cl::CommandQueue queue(g_context, g_devices[0]);
+
+    error = queue.enqueueWriteBuffer(b00, CL_TRUE, 0, buff_size0, p00.data());
+    error = queue.enqueueWriteBuffer(b01, CL_TRUE, 0, buff_size0, p01.data());
+    error = queue.enqueueWriteBuffer(b02, CL_TRUE, 0, buff_size0, p02.data());
+
+    error = queue.enqueueWriteBuffer(b10, CL_TRUE, 0, buff_size1, p10.data());
+    error = queue.enqueueWriteBuffer(b11, CL_TRUE, 0, buff_size1, p11.data());
+    error = queue.enqueueWriteBuffer(b12, CL_TRUE, 0, buff_size1, p12.data());
+
+    error = queue.enqueueWriteBuffer(b_res_sz, CL_TRUE, 0, sizeof(cl_uint), &res_sz);
+
+
+    error = queue.enqueueNDRangeKernel(kernel_findIntersections, cl::NDRange(0), cl::NDRange(num_triangles0, num_triangles1));
+
+    //error = queue.enqueueReadBuffer(b0, CL_TRUE, 0, buff_size, p0.data());
+    //error = queue.enqueueReadBuffer(b1, CL_TRUE, 0, buff_size, p1.data());
+    //error = queue.enqueueReadBuffer(b2, CL_TRUE, 0, buff_size, p2.data());
+
+    error = queue.enqueueReadBuffer(b_res_sz, CL_TRUE, 0, sizeof(cl_uint), &res_sz);
+
+
+}
+
+}
+
+void OpenSTL::Algorithm::FindIntersections(Data::Stl & model)
+{
+
+    if (!initOpenCL())
+        return;
 
     // Set parameters and run algorithm
     std::vector<cl_float4> pts[3];
@@ -76,38 +186,16 @@ void FindIntersections(Data::Stl & model)
         }
       }
 
-    size_t float4_size = sizeof(cl_float4);
-    size_t buff_size = pts[0].size() * sizeof(cl_float4);
-    cl::Buffer b0(context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, buff_size, pts[0].data(), &error);
-    cl::Buffer b1(context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, buff_size, pts[1].data(), &error);
-    cl::Buffer b2(context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, buff_size, pts[2].data(), &error);
+    arrangeTriangleCoordinatesZ(pts[0], pts[1], pts[2]);
 
-    // Create kernel 
-    cl::Kernel arrangePoints(program, "arrangeTriangleCoordinatesZ");
+    std::vector<std::pair<size_t, size_t>> intersections;
 
-    arrangePoints.setArg(0, b0);
-    arrangePoints.setArg(1, b1);
-    arrangePoints.setArg(2, b2);
-
-    cl::CommandQueue queue(context, devices[0]);
-
-    error = queue.enqueueWriteBuffer(b0, CL_TRUE, 0, buff_size, pts[0].data());
-    error = queue.enqueueWriteBuffer(b1, CL_TRUE, 0, buff_size, pts[1].data());
-    error = queue.enqueueWriteBuffer(b2, CL_TRUE, 0, buff_size, pts[2].data());
-
-    error = queue.enqueueNDRangeKernel(arrangePoints, cl::NDRange(0), cl::NDRange(pts[0].size()));
-
-    error = queue.enqueueReadBuffer(b0, CL_TRUE, 0, buff_size, pts[0].data());
-    error = queue.enqueueReadBuffer(b1, CL_TRUE, 0, buff_size, pts[1].data());
-    error = queue.enqueueReadBuffer(b2, CL_TRUE, 0, buff_size, pts[2].data());
+    findIntersections(pts[0], pts[1], pts[2], pts[0], pts[1], pts[2], intersections);
 
 
-
-
+    g_devices.clear();
+    g_platforms.clear();
 
   }
 
   
-}  
-
-}
