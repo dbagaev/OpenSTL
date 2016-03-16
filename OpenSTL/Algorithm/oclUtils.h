@@ -1,37 +1,31 @@
 #pragma once
 
 #include "Algorithm.h"
+#include "oclException.h"
 
 #include <exception>
 #include <string>
+
+#pragma warning (push)
+#pragma warning (disable : 4996)
+#include <CL/cl.hpp>
+#pragma warning (pop)
+
 
 namespace OpenSTL {
 
 namespace ocl {
 
 
-class Exception : public std::exception
+class Manager
 {
 public:
-    Exception(int error) : error_(error) {};
+    static Manager & instance();
+    static cl::Program loadProgramFromSources(std::string file_name);
 
-    const char * what() const override;
-
-private:
-    int error_;
+    static cl::Device & getDefaultGPUDevice();
+    static cl::Context & getDefaultContext();
 };
-
-class BuildError : public Exception
-{
-public:
-    BuildError(std::string log);
-
-    std::string log() const { return log_; };
-
-private:
-    std::string log_;
-};
-
 
 
 }

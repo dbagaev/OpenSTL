@@ -1,9 +1,6 @@
 #include "oclUtils.h"
 
-#pragma warning (push)
-#pragma warning (disable : 4996)
-#include <CL/cl.hpp>
-#pragma warning (pop)
+#include <fstream>
 
 namespace {
 
@@ -89,6 +86,83 @@ const char *getErrorString(cl_int error)
 namespace OpenSTL {
 
 namespace ocl {
+
+Manager & Manager::instance()
+{
+    static Manager instance;
+
+    return instance;
+}
+
+cl::Device & Manager::getDefaultGPUDevice()
+{
+    // Find appropriate OpenCL device
+    static std::vector<cl::Device> devices;
+    static std::vector<cl::Platform> platforms;
+  
+    if (platforms.empty() || devices.empty())
+    {
+        if (platforms.empty())
+            cl::Platform::get(&platforms);  
+  
+        for (auto & p : platforms)
+        {
+            p.getDevices(CL_DEVICE_TYPE_GPU, &devices);
+  
+            if (!devices.empty())
+                break;
+        }  
+    }  
+
+    if (devices.empty())
+        throw std::exception("No default GPU device found");
+    
+    return devices[0];
+}
+
+cl::Context & Manager::getDefaultContext()
+{
+    static cl::Context context(getDefaultGPUDevice());
+
+    return context;
+}
+
+
+
+cl::Program Manager::loadProgramFromSources(std::string file_name)
+{
+    std::vector<char> buff;
+    cl::Program::Sources sources;
+
+    std::ifstream ifs(file_name);
+    ifs.seekg(0, std::ios::end);
+    size_t sz = ifs.tellg();
+    buff.resize(sz + 1);
+    ifs.seekg(0);
+    ifs.read(buff.data(), sz);
+    buff[sz] = 0;
+    sources.clear();
+    sources.push_back(std::make_pair(buff.data(), buff.size()));
+
+    cl::Program program(getDefaultContext(), sources);
+    cl_int error = program.build(std::vector<cl::Device>({getDefaultGPUDevice()}));
+
+    if (error != CL_SUCCESS)
+    {
+        if (error == CL_BUILD_PROGRAM_FAILURE)
+        {
+            std::string build_log;
+            program.getBuildInfo(getDefaultGPUDevice(), CL_PROGRAM_BUILD_LOG, &build_log);
+
+            throw OpenSTL::ocl::BuildError(build_log);
+        }
+        else
+            throw OpenSTL::ocl::Exception(error);
+    }
+
+    return program;
+}
+
 
 
 const char * Exception::what() const

@@ -2,7 +2,7 @@
 #include <OpenSTL/Data/StlReader.h>
 
 #include <OpenSTL/Algorithm/FindIntersections.h>
-#include <OpenSTL/Algorithm/oclUtils.h>
+#include <OpenSTL/Algorithm/oclException.h>
 
 #include <fstream>
 #include <iostream>
@@ -46,11 +46,11 @@ int main(int argc, char ** argv)
     std::vector<OpenSTL::Data::Point *> p_points1;
     p_points1.push_back(model.addPoint(1000, 1000, 1000));
     p_points1.push_back(model.addPoint(1000, 1020, 1000));
-    p_points1.push_back(model.addPoint(1000, 1010, 1020));
-    p_points1.push_back(model.addPoint(1000, 1005, 1010));
+    p_points1.push_back(model.addPoint(1010, 1010, 1020));
+    p_points1.push_back(model.addPoint(1005, 1010, 1010));
 
-    //model.addTriangle(p_points1[0], p_points1[1], p_points1[2]);
-    //model.addTriangle(p_points1[0], p_points1[3], p_points1[1]);
+    model.addTriangle(p_points1[0], p_points1[1], p_points1[2]);
+    model.addTriangle(p_points1[0], p_points1[3], p_points1[1]);
     
 
 
