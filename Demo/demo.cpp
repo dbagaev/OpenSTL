@@ -2,6 +2,7 @@
 #include <OpenSTL/Data/StlReader.h>
 
 #include <OpenSTL/Algorithm/FindIntersections.h>
+#include <OpenSTL/Algorithm/oclUtils.h>
 
 #include <fstream>
 #include <iostream>
@@ -20,6 +21,10 @@ int main(int argc, char ** argv)
         std::cout << "  Triangles: " << stl.getNumberTriangles() << std::endl;
 
     }
+
+    try {
+
+      
 
     OpenSTL::Data::Stl model;
 
@@ -51,5 +56,16 @@ int main(int argc, char ** argv)
 
 
     OpenSTL::Algorithm::FindIntersections(model);
+
+    }
+    catch (OpenSTL::ocl::BuildError & e)
+    {
+        std::cout << "OpenCL error: " << e.what() << std::endl
+                  << e.log().c_str() << std::endl;
+    }
+    catch (OpenSTL::ocl::Exception & e)
+    {
+        std::cout << "OpenCL error: " << e.what() << std::endl;
+    }
 
 }
