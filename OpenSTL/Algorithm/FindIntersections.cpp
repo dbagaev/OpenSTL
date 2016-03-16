@@ -1,8 +1,15 @@
 #include "FindIntersections.h"
 
+#pragma warning (push)
+#pragma warning (disable : 4996)
 #include <CL/cl.hpp>
+#pragma warning (pop)
+
 
 #include <fstream>
+#include <iostream>
+
+#include "oclUtils.h"
 
 namespace  {
 
@@ -44,20 +51,29 @@ bool initOpenCL()
     if (g_devices.empty())
         return false;
 
+    std::string exts;
+    g_devices[0].getInfo(CL_DEVICE_EXTENSIONS, &exts);
+    std::cout << exts.c_str() << std::endl;
+
     cl::Context context(g_devices);
     Sources source;
-    loadProgramSources("D:\\Development\\OpenSTL\\Source\\OpenSTL\\Algorithm\\ocl_kernels\\triangles.cl", source);
+    // loadProgramSources("D:\\Development\\OpenSTL\\Source\\OpenSTL\\Algorithm\\ocl_kernels\\triangles.cl", source);
+    loadProgramSources("E:\\Development\\MyResearch\\OpenSTL\\Source\\OpenSTL\\Algorithm\\ocl_kernels\\triangles.cl", source);
 
     cl::Program program(context, source.second);
     cl_int error = program.build(g_devices);
 
     if (error != CL_SUCCESS)
     {
-        std::string build_log;
-        program.getBuildInfo(g_devices[0], CL_PROGRAM_BUILD_LOG, &build_log);
+        if (error == CL_BUILD_PROGRAM_FAILURE)
+        {
+            std::string build_log;
+            program.getBuildInfo(g_devices[0], CL_PROGRAM_BUILD_LOG, &build_log);
 
-        return false;
-        //std::cout << build_log << std::endl;
+            throw OpenSTL::ocl::BuildError(build_log);
+        }
+        else
+            throw OpenSTL::ocl::Exception(error);
     }
 
     g_context = context;
@@ -66,12 +82,12 @@ bool initOpenCL()
     return true;
 }
 
-void arrangeTriangleCoordinatesZ(std::vector<cl_float4> & p0, std::vector<cl_float4> & p1, std::vector<cl_float4> & p2)
+void arrangeTriangleCoordinatesZ(std::vector<cl_double4> & p0, std::vector<cl_double4> & p1, std::vector<cl_double4> & p2)
 {
     cl_int error;
 
     // Allocate buffers and move data
-    size_t point_size = sizeof(cl_float4);
+    size_t point_size = sizeof(cl_double4);
     size_t num_triangles = p0.size();
     size_t buff_size = num_triangles * point_size;
     
@@ -100,12 +116,12 @@ void arrangeTriangleCoordinatesZ(std::vector<cl_float4> & p0, std::vector<cl_flo
 
 }
 
-void findIntersections(std::vector<cl_float4> & p00, std::vector<cl_float4> & p01, std::vector<cl_float4> & p02, 
-                       std::vector<cl_float4> & p10, std::vector<cl_float4> & p11, std::vector<cl_float4> & p12,
+void findIntersections(std::vector<cl_double4> & p00, std::vector<cl_double4> & p01, std::vector<cl_double4> & p02, 
+                       std::vector<cl_double4> & p10, std::vector<cl_double4> & p11, std::vector<cl_double4> & p12,
                        std::vector<std::pair<size_t, size_t>> & result)
 {  
     // Allocate buffers and move data
-    size_t point_size = sizeof(cl_float4);
+    size_t point_size = sizeof(cl_double4);
     size_t num_triangles0 = p00.size();
     size_t num_triangles1 = p10.size();
     size_t buff_size0 = num_triangles0 * point_size;
@@ -170,18 +186,18 @@ void OpenSTL::Algorithm::FindIntersections(Data::Stl & model)
         return;
 
     // Set parameters and run algorithm
-    std::vector<cl_float4> pts[3];
+    std::vector<cl_double4> pts[3];
     auto p_end_tri = model.endTriangle();
     for (auto p_tri = model.beginTriangle(); p_tri != p_end_tri; ++p_tri)
       {
       for (size_t i = 0; i < 3; ++i)
         {
-        cl_float4 pos;
+        cl_double4 pos;
         auto p_pt = p_tri->getPoint(i);
-        pos.s0 = (float)p_pt->position()[0];
-        pos.s1 = (float)p_pt->position()[1];
-        pos.s2 = (float)p_pt->position()[2];
-        pos.s3 = 0;
+        pos.x = p_pt->position()[0];
+        pos.y = p_pt->position()[1];
+        pos.x = p_pt->position()[2];
+        pos.w = 0;
         pts[i].push_back(pos);
         }
       }
@@ -197,5 +213,3 @@ void OpenSTL::Algorithm::FindIntersections(Data::Stl & model)
     g_platforms.clear();
 
   }
-
-  
