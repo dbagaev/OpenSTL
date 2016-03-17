@@ -8,6 +8,7 @@
 #include "omp.h"
 
 #include <fstream>
+#include <algorithm>
 #include <iostream>
 #include <chrono>
 
@@ -119,16 +120,6 @@ size_t findIntersections(std::vector<cl_double4> & p00, std::vector<cl_double4> 
 
     auto time_kernel = std::chrono::steady_clock::now();
 
-    kernel_findIntersections.setArg(0, b00);
-    kernel_findIntersections.setArg(1, b01);
-    kernel_findIntersections.setArg(2, b02);
-
-    kernel_findIntersections.setArg(3, b10);
-    kernel_findIntersections.setArg(4, b11);
-    kernel_findIntersections.setArg(5, b12);
-
-    kernel_findIntersections.setArg(6, b_res_sz);
-
     cl::CommandQueue queue(context, OpenSTL::ocl::Manager::getDefaultGPUDevice());
 
     error = queue.enqueueWriteBuffer(b00, CL_TRUE, 0, buff_size0, p00.data());
@@ -139,18 +130,52 @@ size_t findIntersections(std::vector<cl_double4> & p00, std::vector<cl_double4> 
     error = queue.enqueueWriteBuffer(b11, CL_TRUE, 0, buff_size1, p11.data());
     error = queue.enqueueWriteBuffer(b12, CL_TRUE, 0, buff_size1, p12.data());
 
-    error = queue.enqueueWriteBuffer(b_res_sz, CL_TRUE, 0, sizeof(cl_uint), &res_sz);
+    //error = queue.enqueueWriteBuffer(b_res_sz, CL_TRUE, 0, sizeof(cl_uint), &res_sz);
 
     error = queue.finish();
 
     auto time_copy = std::chrono::steady_clock::now();
 
-    error = queue.enqueueNDRangeKernel(kernel_findIntersections, cl::NDRange(0), cl::NDRange(num_triangles0, num_triangles1), cl::NDRange(group_size0, group_size1));
-    error = queue.finish();
+    size_t sub_size = 8194;
+    for (size_t i = 0; i < num_triangles0 / sub_size + 1; ++i)
+    {
+        for (size_t j = 0; j < num_triangles1 / sub_size + 1; ++j)
+        {
+            cl_buffer_region reg0, reg1;
+            reg0.origin = i * sub_size * point_size;
+            reg0.size = (((i + 1) * sub_size < num_triangles0) ? sub_size : num_triangles0 % sub_size) * point_size;
+            reg1.origin = j * sub_size * point_size;
+            reg1.size = (((j + 1) * sub_size < num_triangles0) ? sub_size : num_triangles0 % sub_size) * point_size;
+
+            auto sb00 = b00.createSubBuffer(CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, CL_BUFFER_CREATE_TYPE_REGION, &reg0);
+            auto sb01 = b01.createSubBuffer(CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, CL_BUFFER_CREATE_TYPE_REGION, &reg0);
+            auto sb02 = b01.createSubBuffer(CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, CL_BUFFER_CREATE_TYPE_REGION, &reg0);
+
+            auto sb10 = b10.createSubBuffer(CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, CL_BUFFER_CREATE_TYPE_REGION, &reg1);
+            auto sb11 = b11.createSubBuffer(CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, CL_BUFFER_CREATE_TYPE_REGION, &reg1);
+            auto sb12 = b12.createSubBuffer(CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, CL_BUFFER_CREATE_TYPE_REGION, &reg1);
+
+            error = kernel_findIntersections.setArg(0, sb00);
+            error = kernel_findIntersections.setArg(1, sb01);
+            error = kernel_findIntersections.setArg(2, sb02);
+
+            error = kernel_findIntersections.setArg(3, sb10);
+            error = kernel_findIntersections.setArg(4, sb11);
+            error = kernel_findIntersections.setArg(5, sb12);
+
+            error = kernel_findIntersections.setArg(6, b_res_sz);
+
+            error = queue.enqueueNDRangeKernel(kernel_findIntersections, cl::NDRange(0), cl::NDRange(num_triangles0, num_triangles1), cl::NDRange(group_size0, group_size1));
+            error = queue.finish();
+
+            size_t tt;
+            error = queue.enqueueReadBuffer(b_res_sz, CL_TRUE, 0, sizeof(cl_uint), &tt);
+            res_sz == tt;
+        }
+    }
 
     auto time_calculations = std::chrono::steady_clock::now();
 
-    error = queue.enqueueReadBuffer(b_res_sz, CL_TRUE, 0, sizeof(cl_uint), &res_sz);
 
     auto time_end = std::chrono::steady_clock::now();
 
