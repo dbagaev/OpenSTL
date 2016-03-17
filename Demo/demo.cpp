@@ -51,11 +51,36 @@ int main(int argc, char ** argv)
 
     model.addTriangle(p_points1[0], p_points1[1], p_points1[2]);
     model.addTriangle(p_points1[0], p_points1[3], p_points1[1]);
-    
+
+    // Intersecting triangles
+    std::vector<OpenSTL::Data::Point *> p_points2;
+    p_points2.push_back(model.addPoint(2000, 2000, 2015));
+    p_points2.push_back(model.addPoint(2100, 2000, 2010));
+    p_points2.push_back(model.addPoint(2000, 2100, 2010));
+
+    p_points2.push_back(model.addPoint(2020, 2020, 2050));
+    p_points2.push_back(model.addPoint(2050, 2000, 2000));
+    p_points2.push_back(model.addPoint(2000, 2050, 2000));
+
+    model.addTriangle(p_points2[0], p_points2[1], p_points2[2]);
+    model.addTriangle(p_points2[3], p_points2[4], p_points2[5]);
 
 
 
-    OpenSTL::Algorithm::FindIntersections(model);
+    size_t n = 0;
+    // n = OpenSTL::Algorithm::FindIntersections(model);
+
+
+    OpenSTL::Data::Stl model2;
+    //std::ifstream ifs("E:\\Temp\\merge2.stl", std::ios::binary);
+    std::ifstream ifs("E:\\Temp\\golf2.stl", std::ios::binary);
+    if (!ifs.good())
+        return 0;
+    ifs >> model2;
+
+    n = OpenSTL::Algorithm::FindIntersections(model2);
+
+    std::cout << "Found intersections: " << n << std::endl;
 
     }
     catch (OpenSTL::ocl::BuildError & e)
@@ -67,5 +92,7 @@ int main(int argc, char ** argv)
     {
         std::cout << "OpenCL error: " << e.what() << std::endl;
     }
+
+    return 0;
 
 }
