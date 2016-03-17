@@ -73,7 +73,13 @@ bool ReadBinaryStl(std::istream & is, Stl & o_stl)
     for (unsigned long i = 0; i < number_of_triangles; ++i)
     { 
         TriangleData data;
-        is.read(reinterpret_cast<char *>(&data), sizeof(TriangleData));
+        size_t data_sz = sizeof(TriangleData);
+        is.read(reinterpret_cast<char *>(&data), data_sz);
+
+        if (is.eof() || is.bad() || !is.good())
+        {
+            return false;
+        }
 
         o_stl.addTriangle(
             o_stl.addPoint(data.tri0[0], data.tri0[1], data.tri0[2]),

@@ -8,7 +8,7 @@ namespace OpenSTL {
 
 namespace Algorithm {
 
-void __OPENSTL_ALGORITHM_EXPORT FindIntersections(Data::Stl & model);
+size_t __OPENSTL_ALGORITHM_EXPORT FindIntersections(Data::Stl & model);
 
 
 }
