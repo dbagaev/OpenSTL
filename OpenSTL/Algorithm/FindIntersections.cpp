@@ -14,22 +14,22 @@
 
 #include "oclUtils.h"
 
-size_t nocl_findTrianglesIntersections(std::vector<cl_double4> p00, std::vector<cl_double4> p01, std::vector<cl_double4> p02,
-  std::vector<cl_double4> p10, std::vector<cl_double4> p11, std::vector<cl_double4> p12);
+size_t nocl_findTrianglesIntersections(std::vector<cl_float4> p00, std::vector<cl_float4> p01, std::vector<cl_float4> p02,
+  std::vector<cl_float4> p10, std::vector<cl_float4> p11, std::vector<cl_float4> p12);
 
 
 namespace  {
 
 cl::Program program;
 
-void arrangeTriangleCoordinatesZ(std::vector<cl_double4> & p0, std::vector<cl_double4> & p1, std::vector<cl_double4> & p2)
+void arrangeTriangleCoordinatesZ(std::vector<cl_float4> & p0, std::vector<cl_float4> & p1, std::vector<cl_float4> & p2)
 {
     cl_int error;
 
     cl::Context & context = OpenSTL::ocl::Manager::getDefaultContext();
 
     // Allocate buffers and move data
-    size_t point_size = sizeof(cl_double4);
+    size_t point_size = sizeof(cl_float4);
     size_t num_triangles = p0.size();
     size_t buff_size = num_triangles * point_size;
     
@@ -58,14 +58,14 @@ void arrangeTriangleCoordinatesZ(std::vector<cl_double4> & p0, std::vector<cl_do
 
 }
 
-size_t findIntersections(std::vector<cl_double4> & p00, std::vector<cl_double4> & p01, std::vector<cl_double4> & p02, 
-                         std::vector<cl_double4> & p10, std::vector<cl_double4> & p11, std::vector<cl_double4> & p12,
+size_t findIntersections(std::vector<cl_float4> & p00, std::vector<cl_float4> & p01, std::vector<cl_float4> & p02, 
+                         std::vector<cl_float4> & p10, std::vector<cl_float4> & p11, std::vector<cl_float4> & p12,
                          std::vector<std::pair<size_t, size_t>> & result)
 {  
     cl::Context & context = OpenSTL::ocl::Manager::getDefaultContext();
 
     // Allocate buffers and move data
-    size_t point_size = sizeof(cl_double4);
+    size_t point_size = sizeof(cl_float4);
     size_t num_triangles0 = p00.size();
     size_t num_triangles1 = p10.size();
 
@@ -75,10 +75,10 @@ size_t findIntersections(std::vector<cl_double4> & p00, std::vector<cl_double4> 
     num_triangles0 += 128 - num_triangles0 % group_size0;
     num_triangles1 += 128 - num_triangles1 % group_size1;
 
-    static cl_double4 t;
-    t.x = 0;
-    t.y = 0;
-    t.z = 0;
+    static cl_float4 t;
+    t.x = std::max(p02.back().x, p12.back().x) + 1;
+    t.y = std::max(p02.back().y, p12.back().y) + 1;
+    t.z = std::max(p02.back().z, p12.back().z) + 1;
     t.w = 0;
 
     while (p00.size() < num_triangles0)
@@ -102,15 +102,16 @@ size_t findIntersections(std::vector<cl_double4> & p00, std::vector<cl_double4> 
 
     auto time_start = std::chrono::steady_clock::now();
 
-    cl::Buffer b00(context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, buff_size0, p00.data(), &error);
-    cl::Buffer b01(context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, buff_size0, p01.data(), &error);
-    cl::Buffer b02(context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, buff_size0, p02.data(), &error);
+    cl::Buffer b00(context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, buff_size0, p00.data(), &error);
+    cl::Buffer b01(context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, buff_size0, p01.data(), &error);
+    cl::Buffer b02(context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, buff_size0, p02.data(), &error);
 
-    cl::Buffer b10(context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, buff_size1, p10.data(), &error);
-    cl::Buffer b11(context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, buff_size1, p11.data(), &error);
-    cl::Buffer b12(context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, buff_size1, p12.data(), &error);
+    cl::Buffer b10(context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, buff_size1, p10.data(), &error);
+    cl::Buffer b11(context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, buff_size1, p11.data(), &error);
+    cl::Buffer b12(context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, buff_size1, p12.data(), &error);
 
     cl_uint res_sz = 0;
+    size_t total_count = 0;
     cl::Buffer b_res_sz(context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, sizeof(cl_uint), &res_sz, &error);
 
     auto time_buff = std::chrono::steady_clock::now();
@@ -130,47 +131,51 @@ size_t findIntersections(std::vector<cl_double4> & p00, std::vector<cl_double4> 
     error = queue.enqueueWriteBuffer(b11, CL_TRUE, 0, buff_size1, p11.data());
     error = queue.enqueueWriteBuffer(b12, CL_TRUE, 0, buff_size1, p12.data());
 
-    //error = queue.enqueueWriteBuffer(b_res_sz, CL_TRUE, 0, sizeof(cl_uint), &res_sz);
+    error = queue.enqueueWriteBuffer(b_res_sz, CL_TRUE, 0, sizeof(cl_uint), &res_sz);
 
     error = queue.finish();
 
     auto time_copy = std::chrono::steady_clock::now();
 
-    size_t sub_size = 8194;
+    size_t sub_size = 8192;
     for (size_t i = 0; i < num_triangles0 / sub_size + 1; ++i)
     {
+        size_t offs0 = i * sub_size;
+        size_t size0 = (i + 1) * sub_size <= num_triangles0 ? sub_size : num_triangles0 % sub_size;
+
         for (size_t j = 0; j < num_triangles1 / sub_size + 1; ++j)
         {
-            cl_buffer_region reg0, reg1;
-            reg0.origin = i * sub_size * point_size;
-            reg0.size = (((i + 1) * sub_size < num_triangles0) ? sub_size : num_triangles0 % sub_size) * point_size;
-            reg1.origin = j * sub_size * point_size;
-            reg1.size = (((j + 1) * sub_size < num_triangles0) ? sub_size : num_triangles0 % sub_size) * point_size;
+            size_t offs1 = j * sub_size;
+            size_t size1 = (j + 1) * sub_size <= num_triangles1 ? sub_size : num_triangles1 % sub_size;
 
-            auto sb00 = b00.createSubBuffer(CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, CL_BUFFER_CREATE_TYPE_REGION, &reg0);
-            auto sb01 = b01.createSubBuffer(CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, CL_BUFFER_CREATE_TYPE_REGION, &reg0);
-            auto sb02 = b01.createSubBuffer(CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, CL_BUFFER_CREATE_TYPE_REGION, &reg0);
+            if (p12[offs1 + size1 - 1].z < p00[offs0].z)
+                continue;
 
-            auto sb10 = b10.createSubBuffer(CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, CL_BUFFER_CREATE_TYPE_REGION, &reg1);
-            auto sb11 = b11.createSubBuffer(CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, CL_BUFFER_CREATE_TYPE_REGION, &reg1);
-            auto sb12 = b12.createSubBuffer(CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, CL_BUFFER_CREATE_TYPE_REGION, &reg1);
+            if (p10[offs1].z > p02[offs0 + size0 - 1].z)
+                continue;
 
-            error = kernel_findIntersections.setArg(0, sb00);
-            error = kernel_findIntersections.setArg(1, sb01);
-            error = kernel_findIntersections.setArg(2, sb02);
+            error = kernel_findIntersections.setArg(0, b00);
+            error = kernel_findIntersections.setArg(1, b01);
+            error = kernel_findIntersections.setArg(2, b02);
 
-            error = kernel_findIntersections.setArg(3, sb10);
-            error = kernel_findIntersections.setArg(4, sb11);
-            error = kernel_findIntersections.setArg(5, sb12);
+            error = kernel_findIntersections.setArg(3, b10);
+            error = kernel_findIntersections.setArg(4, b11);
+            error = kernel_findIntersections.setArg(5, b12);
 
             error = kernel_findIntersections.setArg(6, b_res_sz);
 
-            error = queue.enqueueNDRangeKernel(kernel_findIntersections, cl::NDRange(0), cl::NDRange(num_triangles0, num_triangles1), cl::NDRange(group_size0, group_size1));
+            res_sz = 0;
+            error = queue.enqueueWriteBuffer(b_res_sz, CL_TRUE, 0, sizeof(cl_uint), &res_sz);
+
+            error = queue.enqueueNDRangeKernel(kernel_findIntersections, 
+                cl::NDRange(offs0, offs1), 
+                cl::NDRange(size0, size1),
+                cl::NDRange(group_size0, group_size1));
+            // error = queue.enqueueNDRangeKernel(kernel_findIntersections, cl::NDRange(0), cl::NDRange(num_triangles0, num_triangles1), cl::NDRange(group_size0, group_size1));
             error = queue.finish();
 
-            size_t tt;
-            error = queue.enqueueReadBuffer(b_res_sz, CL_TRUE, 0, sizeof(cl_uint), &tt);
-            res_sz == tt;
+            error = queue.enqueueReadBuffer(b_res_sz, CL_TRUE, 0, sizeof(cl_uint), &res_sz);
+            total_count += res_sz;
         }
     }
 
@@ -185,7 +190,7 @@ size_t findIntersections(std::vector<cl_double4> & p00, std::vector<cl_double4> 
     std::cout << "Calcualtions:  " << (time_calculations - time_copy).count() << std::endl;
     std::cout << "Finalize:      " << (time_end - time_calculations).count() << std::endl;
 
-    return res_sz;
+    return total_count;
 }
 
 }
@@ -193,14 +198,29 @@ size_t findIntersections(std::vector<cl_double4> & p00, std::vector<cl_double4> 
 size_t OpenSTL::Algorithm::FindIntersections(Data::Stl & model)
 {
     // Set parameters and run algorithm
-    std::vector<cl_double4> pts[3];
+    std::vector<cl_float4> pts[3];
     auto p_end_tri = model.endTriangle();
+
+    typedef std::pair<OpenSTL::Data::Triangle *, double> tri_m_t;
+    std::vector<tri_m_t> triangles;
+    triangles.reserve(model.getNumberTriangles());
     for (auto p_tri = model.beginTriangle(); p_tri != p_end_tri; ++p_tri)
+    {
+        const double m = std::min(p_tri->getPoint(0)->position()[2], std::min(p_tri->getPoint(1)->position()[2], p_tri->getPoint(2)->position()[2]));
+        triangles.push_back(std::make_pair(&*p_tri, m));
+    }
+
+    std::stable_sort(triangles.begin(), triangles.end(), [](const tri_m_t & t1, const tri_m_t & t2)
+    {
+        return (t1.second < t2.second);
+    });
+
+    for (auto & p_tri : triangles)
     {
         for (size_t i = 0; i < 3; ++i)
         {
-            cl_double4 pos;
-            auto p_pt = p_tri->getPoint(i);
+            cl_float4 pos;
+            auto p_pt = p_tri.first->getPoint(i);
             pos.x = p_pt->position()[0];
             pos.y = p_pt->position()[1];
             pos.z = p_pt->position()[2];
@@ -209,8 +229,8 @@ size_t OpenSTL::Algorithm::FindIntersections(Data::Stl & model)
         }
     }
 
-    // program = OpenSTL::ocl::Manager::loadProgramFromSources("D:\\Development\\OpenSTL\\Source\\OpenSTL\\Algorithm\\ocl_kernels\\triangles.cl");
-    program = OpenSTL::ocl::Manager::loadProgramFromSources("E:\\Development\\MyResearch\\OpenSTL\\Source\\OpenSTL\\Algorithm\\ocl_kernels\\triangles.cl");
+    program = OpenSTL::ocl::Manager::loadProgramFromSources("D:\\Development\\OpenSTL\\Source\\OpenSTL\\Algorithm\\ocl_kernels\\triangles.cl");
+    // program = OpenSTL::ocl::Manager::loadProgramFromSources("E:\\Development\\MyResearch\\OpenSTL\\Source\\OpenSTL\\Algorithm\\ocl_kernels\\triangles.cl");
 
     arrangeTriangleCoordinatesZ(pts[0], pts[1], pts[2]);
 
@@ -219,7 +239,7 @@ size_t OpenSTL::Algorithm::FindIntersections(Data::Stl & model)
     auto time_start = std::chrono::steady_clock::now();
 
     auto res = findIntersections(pts[0], pts[1], pts[2], pts[0], pts[1], pts[2], intersections);
-    //auto res =  nocl_findTrianglesIntersections(pts[0], pts[1], pts[2], pts[0], pts[1], pts[2]);
+    // auto res =  nocl_findTrianglesIntersections(pts[0], pts[1], pts[2], pts[0], pts[1], pts[2]);
 
     auto time_end = std::chrono::steady_clock::now();
 
@@ -233,16 +253,16 @@ size_t OpenSTL::Algorithm::FindIntersections(Data::Stl & model)
 
 
 
-typedef cl_double4 double4;
+typedef cl_float4 double4;
 
-double dot(cl_double4 a, cl_double4 b)
+double dot(cl_float4 a, cl_float4 b)
 {
     return a.x * b.x + a.y * b.y + a.z * b.z;
 }
 
-cl_double4 cross(cl_double4 a, cl_double4 b)
+cl_float4 cross(cl_float4 a, cl_float4 b)
 {
-    cl_double4 r;
+    cl_float4 r;
   
     r.x = a.y * b.z - a.z * b.y;
     r.y = a.z * b.x - a.x * b.z;
@@ -254,9 +274,9 @@ cl_double4 cross(cl_double4 a, cl_double4 b)
 
 bool all(bool a) { return a; }
 
-cl_double4 operator-(cl_double4 a, cl_double4 b)
+cl_float4 operator-(cl_float4 a, cl_float4 b)
 {
-    cl_double4 r;
+    cl_float4 r;
     r.x = a.x - b.x;
     r.y = a.y - b.y;
     r.z = a.z - b.z;
@@ -264,7 +284,7 @@ cl_double4 operator-(cl_double4 a, cl_double4 b)
     return r;
 }
 
-bool operator==(cl_double4 a, cl_double4 b)
+bool operator==(cl_float4 a, cl_float4 b)
 {
     return (a.x == b.x && a.y == b.y && a.z == b.z);
 }
@@ -505,8 +525,8 @@ bool doTrianglesIntersect(const double4 p00, const double4 p01, const double4 p0
 
 
 
-size_t nocl_findTrianglesIntersections(std::vector<cl_double4> p00, std::vector<cl_double4> p01, std::vector<cl_double4> p02,
-                                       std::vector<cl_double4> p10, std::vector<cl_double4> p11, std::vector<cl_double4> p12)
+size_t nocl_findTrianglesIntersections(std::vector<cl_float4> p00, std::vector<cl_float4> p01, std::vector<cl_float4> p02,
+                                       std::vector<cl_float4> p10, std::vector<cl_float4> p11, std::vector<cl_float4> p12)
 {
     size_t count = 0;
 
