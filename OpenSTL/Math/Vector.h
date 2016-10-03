@@ -8,11 +8,55 @@ namespace OpenSTL {
 namespace Math {
 
 template <typename T, size_t D>
-class Vector
+struct VectorData
+{
+	T v[D];
+
+	inline T operator[](size_t i) const { return v[i]; };
+	inline T & operator[](size_t i) { return v[i]; };
+};
+
+template <typename T>
+struct VectorData<T, 2>
+{
+	VectorData() = default;
+	VectorData(T x_, T y_) : x(x_), y(y_) {}
+
+	union {
+		T v[2];
+		struct {
+			T x;
+			T y;
+		};
+	};
+
+	T operator[](size_t i) const { return v[i]; };
+	inline T & operator[](size_t i) { return v[i]; };
+};
+
+template <typename T>
+struct VectorData<T, 3>
+{
+	VectorData() = default;
+	VectorData(T x_, T y_, T z_) : x(x_), y(y_), z(z_) {}
+
+	union {
+		T v[3];
+		struct {
+			T x;
+			T y;
+			T z;
+		};
+	};
+
+	T operator[](size_t i) const { return v[i]; };
+	inline T & operator[](size_t i) { return v[i]; };
+};
+
+template <typename T, size_t D>
+class Vector : public VectorData<T, D>
 {
 public:
-    T v[D];
-
     template <typename OT>
     Vector<T, D> operator+(const Vector<OT, D> & a);
     template <typename OT>

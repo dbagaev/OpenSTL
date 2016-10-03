@@ -8,19 +8,14 @@ namespace OpenSTL {
 namespace Math {
   
 template <typename T>
-class Vector < T, 3 >
+class Vector < T, 3 > : public VectorData<T, 3>
 {
 public:
-    Vector() : v({ 0, 0, 0 }) {};
-    Vector(T x, T y, T z) : v({ x, y, z }) {};
+    Vector() = default;
+    Vector(T x, T y, T z) : VectorData( x, y, z ) {};
 
     template <typename OT>
     Vector<T, 3> operator^(const Vector<OT, 3> & a);
-
-    inline T operator[](size_t i) const { return v[i]; };
-
-private:
-    std::array<double, 3> v;
 };
 
 //----------------------------------------------------------------------------------------------------
