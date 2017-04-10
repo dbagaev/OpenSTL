@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.1)
-project(OpenSTL)
+project(mesh)
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
@@ -43,6 +43,6 @@ if ( BUILD_TESTING )
     endif( NOT GTEST_FOUND )
 endif ( BUILD_TESTING )
 
-add_subdirectory(OpenSTL )
-add_subdirectory(Tests )
-add_subdirectory(Demo )
+add_subdirectory( mesh )
+add_subdirectory( Tests )
+add_subdirectory( Demo )

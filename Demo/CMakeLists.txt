@@ -11,4 +11,4 @@ link_directories(${LINK_DIRECTORIES} ${Boost_LIB_DIR} ${Python_LIB_DIR})
 
 add_executable(Demo ${ALL_SOURCE})
 
-target_link_libraries(Demo OpenSTL.Data OpenSTL.Algorithm)
+target_link_libraries(Demo mesh.Data mesh.Algorithm)

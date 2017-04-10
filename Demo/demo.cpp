@@ -1,8 +1,8 @@
-#include <OpenSTL/Data/Stl.h>
-#include <OpenSTL/Data/StlReader.h>
+#include <mesh/Data/Stl.h>
+#include <mesh/Data/StlReader.h>
 
-#include <OpenSTL/Algorithm/FindIntersections.h>
-#include <OpenSTL/Algorithm/oclException.h>
+#include <mesh/Algorithm/FindIntersections.h>
+#include <mesh/Algorithm/oclException.h>
 
 #include <fstream>
 #include <iostream>
@@ -11,7 +11,7 @@ int main(int argc, char ** argv)
 {
     if (argc > 1)
     {
-        OpenSTL::Data::Stl stl;
+        mesh::Data::Stl stl;
 
         std::ifstream ifs(argv[1], std::ios::binary);
         ifs >> stl;
@@ -26,10 +26,10 @@ int main(int argc, char ** argv)
 
       
 
-    OpenSTL::Data::Stl model;
+    mesh::Data::Stl model;
 
 
-    std::vector<OpenSTL::Data::Point *> p_points;
+    std::vector<mesh::Data::Point *> p_points;
 
     p_points.push_back(model.addPoint(0, 0, 10));
     p_points.push_back(model.addPoint(10, 0, 30));
@@ -43,7 +43,7 @@ int main(int argc, char ** argv)
     model.addTriangle(p_points[3], p_points[4], p_points[5]);
 
     // Triangles intersect along the edge
-    std::vector<OpenSTL::Data::Point *> p_points1;
+    std::vector<mesh::Data::Point *> p_points1;
     p_points1.push_back(model.addPoint(1000, 1000, 1000));
     p_points1.push_back(model.addPoint(1000, 1020, 1000));
     p_points1.push_back(model.addPoint(1010, 1010, 1020));
@@ -53,7 +53,7 @@ int main(int argc, char ** argv)
     model.addTriangle(p_points1[0], p_points1[3], p_points1[1]);
 
     // Intersecting triangles
-    std::vector<OpenSTL::Data::Point *> p_points2;
+    std::vector<mesh::Data::Point *> p_points2;
     p_points2.push_back(model.addPoint(2000, 2000, 2015));
     p_points2.push_back(model.addPoint(2100, 2000, 2010));
     p_points2.push_back(model.addPoint(2000, 2100, 2010));
@@ -68,27 +68,27 @@ int main(int argc, char ** argv)
 
 
     size_t n = 0;
-    // n = OpenSTL::Algorithm::FindIntersections(model);
+    // n = mesh::Algorithm::FindIntersections(model);
 
 
-    OpenSTL::Data::Stl model2;
+    mesh::Data::Stl model2;
     //std::ifstream ifs("E:\\Temp\\merge2.stl", std::ios::binary);
     std::ifstream ifs("E:\\Temp\\golf2.stl", std::ios::binary);
     if (!ifs.good())
         return 0;
     ifs >> model2;
 
-    n = OpenSTL::Algorithm::FindIntersections(model2);
+    n = mesh::Algorithm::FindIntersections(model2);
 
     std::cout << "Found intersections: " << n << std::endl;
 
     }
-    catch (OpenSTL::ocl::BuildError & e)
+    catch (mesh::ocl::BuildError & e)
     {
         std::cout << "OpenCL error: " << e.what() << std::endl
                   << e.log().c_str() << std::endl;
     }
-    catch (OpenSTL::ocl::Exception & e)
+    catch (mesh::ocl::Exception & e)
     {
         std::cout << "OpenCL error: " << e.what() << std::endl;
     }
