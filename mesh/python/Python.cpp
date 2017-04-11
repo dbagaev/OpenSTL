@@ -11,7 +11,7 @@ char const * test()
 
 using namespace boost::python;
 
-BOOST_PYTHON_MODULE(OpenSTL)
+BOOST_PYTHON_MODULE(mesh)
 {
     def("test", test);
 }
