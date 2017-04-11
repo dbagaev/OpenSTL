@@ -25,7 +25,7 @@ class ContainerWrapper<std::vector<KeyType>, KeyType>
 public:
     void ensureSize(size_t size)
     {
-        if m_Data.size() < size
+        if(m_Data.size() <= size)
             m_Data.resize(size + 1);
     }
 
