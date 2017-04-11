@@ -124,6 +124,8 @@ private:
 
     AttributesAllocMap<Point> _PointsAttributesAllocMap;
     AttributesAllocMap<Triangle> _TrianglesAttributesAllocMap;
+
+    Indexer<Point> m_PointIndexer;
 };
 
 template <typename OwnerType, typename DataType>

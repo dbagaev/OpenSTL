@@ -3,14 +3,15 @@
 #include "Data.h"
 
 #include "Attributes.h"
+#include "Indexer.h"
 
-#include "../Math/Vector3d.h"
+#include <math/Vector3d.h>
 
 namespace mesh {
 
 namespace Data {
 
-class __mesh_DATA_EXPORT Point : public AttributeOwner
+class __mesh_DATA_EXPORT Point : public AttributeOwner, public IndexedKey<Point>
 {
 public:
     friend class Stl;

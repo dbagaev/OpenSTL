@@ -39,8 +39,9 @@ Point * Stl::addPoint(const Math::Vector3dDouble & position)
     Point * p_point = findPoint(position);
     if (p_point == nullptr)
     {
-        _PointsPool.push_back(Point(position));
+        _PointsPool.emplace_back(position);
         p_point = &_PointsPool.back();
+        m_PointIndexer.addIndex(*p_point);
         _Points.insert(p_point);
     }
     
