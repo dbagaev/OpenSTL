@@ -3,7 +3,7 @@
 
 #include "gtest/gtest.h"
 
-using namespace OpenSTL;
+using namespace mesh;
 
 TEST(Test_PointNeighbourTriangles, Simple)
 {
@@ -46,4 +46,4 @@ TEST(Test_PointNeighbourTriangles, Simple)
     EXPECT_EQ(p_tri[1], neighbours->getValue(ps[2]).at(1));
     EXPECT_EQ(p_tri[1], neighbours->getValue(ps[3]).at(0));
 
-}
+} 

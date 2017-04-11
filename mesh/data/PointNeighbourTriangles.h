@@ -92,7 +92,7 @@ public:
 	    Attribute<PointNeighbourAttributeTraits<Data::Triangle>>(p_map)
 	{}
 
-    void update();
+    __mesh_DATA_EXPORT void update();
 
     class NeighbourData
     {
