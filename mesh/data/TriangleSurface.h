@@ -21,14 +21,14 @@ namespace Data {
 
 // class Triangle;
 
-class __mesh_DATA_EXPORT Stl
+class __mesh_DATA_EXPORT TriangleSurface
 {
 public:
-    Stl();
-    Stl(const Stl & stl);
-    ~Stl();
+    TriangleSurface();
+    TriangleSurface(const TriangleSurface & stl);
+    ~TriangleSurface();
 
-    Stl & operator=(const Stl & other);
+    TriangleSurface & operator=(const TriangleSurface & other);
 
     // Points collection
     Point * addPoint(const Point * p_point);
@@ -46,7 +46,7 @@ public:
 
     class PointIterator : public boost::iterator_facade < PointIterator, Point, boost::forward_traversal_tag >
     {
-    friend class Stl;
+    friend class TriangleSurface;
 
     public:
         typedef std::set<Point *, Point::ComparePosition>::iterator InternalIterator;
@@ -70,7 +70,7 @@ public:
 
     class TriangleIterator : public boost::iterator_facade < TriangleIterator, Triangle, boost::forward_traversal_tag >
     {
-    friend class Stl;
+    friend class TriangleSurface;
 
     public:
         typedef std::set<Triangle *>::iterator InternalIterator;
@@ -138,7 +138,7 @@ template <typename OwnerType, typename DataType>
 class FlagAttribute: public Attribute<FlagAttributeTraits<OwnerType, DataType>>
 {
 public:
-    FlagAttribute(AttributesAllocMap<OwnerType> * map, Stl *) : Attribute<FlagAttributeTraits<OwnerType, DataType>>(map) {};
+    FlagAttribute(AttributesAllocMap<OwnerType> * map, TriangleSurface *) : Attribute<FlagAttributeTraits<OwnerType, DataType>>(map) {};
 };
 
 typedef FlagAttribute<Point, long> PointFlagAttribute;

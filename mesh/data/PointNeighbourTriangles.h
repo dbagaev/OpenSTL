@@ -4,7 +4,7 @@
 #define mesh_DATA_POINTNEIGHBOURTRIANGLES_H_
 
 #include "AttributeMap.h"
-#include "Stl.h"
+#include "TriangleSurface.h"
 #include "Point.h"
 #include "Triangle.h"
 #include "PointNeighbours.h"
@@ -18,7 +18,7 @@ namespace mesh { namespace Data {
 class PointNeighbourTriangles : public PointNeighbours<Data::Triangle>, public AttributeMap<Point, std::set<Data::Triangle *>>
 {
 public:
-	PointNeighbourTriangles(Stl * p_stl) : PointNeighbours<Data::Triangle>(p_stl)
+	PointNeighbourTriangles(TriangleSurface * p_stl) : PointNeighbours<Data::Triangle>(p_stl)
 	{
     }
 

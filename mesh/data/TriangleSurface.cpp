@@ -1,4 +1,4 @@
-#include "Stl.h"
+#include "TriangleSurface.h"
 
 #include <Math/Vector3d.h>
 
@@ -6,25 +6,25 @@ using namespace mesh::Data;
 
 namespace mesh {
 
-Stl::Stl()
+TriangleSurface::TriangleSurface()
 {
 }
 
-Stl::Stl(const Stl & stl)
+TriangleSurface::TriangleSurface(const TriangleSurface & surface)
 {
 }
 
-Stl::~Stl()
+TriangleSurface::~TriangleSurface()
 {
 }
 
-Stl & Stl::operator=(const Stl & other)
+TriangleSurface & TriangleSurface::operator=(const TriangleSurface & surface)
 {
     return *this;
 }
 
 // Points collection
-Point * Stl::addPoint(const Point * p_point)
+Point * TriangleSurface::addPoint(const Point * p_point)
 {
     if (isMyPoint(p_point))
     { 
@@ -34,7 +34,7 @@ Point * Stl::addPoint(const Point * p_point)
         return const_cast<Point *>(p_point);
 }
 
-Point * Stl::addPoint(const Math::Vector3dDouble & position)
+Point * TriangleSurface::addPoint(const Math::Vector3dDouble & position)
 {
     Point * p_point = findPoint(position);
     if (p_point == nullptr)
@@ -48,12 +48,12 @@ Point * Stl::addPoint(const Math::Vector3dDouble & position)
     return p_point;
 }
 
-Point * Stl::addPoint(double x, double y, double z)
+Point * TriangleSurface::addPoint(double x, double y, double z)
 {
     return addPoint(Math::Vector3dDouble(x, y, z));
 }
 
-void Stl::removePoint(Point * p_pount)
+void TriangleSurface::removePoint(Point * p_pount)
 {
     if (!isMyPoint(p_pount))
         return;
@@ -61,7 +61,7 @@ void Stl::removePoint(Point * p_pount)
     _Points.erase(p_pount);
 }
 
-Triangle * Stl::addTriangle(const Point * p_p0, const Point * p_p1, const Point * p_p2)
+Triangle * TriangleSurface::addTriangle(const Point * p_p0, const Point * p_p1, const Point * p_p2)
 {
     _TrianglesPool.push_back( Triangle(p_p0, p_p1, p_p2) );
     Triangle * p_tri = &_TrianglesPool.back();
@@ -70,7 +70,7 @@ Triangle * Stl::addTriangle(const Point * p_p0, const Point * p_p1, const Point 
     return p_tri;
 }
 
-Triangle * Stl::addTriangle(const Math::Vector3dDouble & p0, const Math::Vector3dDouble & p1, const Math::Vector3dDouble & p2)
+Triangle * TriangleSurface::addTriangle(const Math::Vector3dDouble & p0, const Math::Vector3dDouble & p1, const Math::Vector3dDouble & p2)
 {
     Point * p_pts[3];
 
@@ -81,7 +81,7 @@ Triangle * Stl::addTriangle(const Math::Vector3dDouble & p0, const Math::Vector3
     return addTriangle(p_pts[0], p_pts[1], p_pts[2]);    
 }
 
-Triangle * Stl::addTriangle(const Triangle * p_tri)
+Triangle * TriangleSurface::addTriangle(const Triangle * p_tri)
 {
     if (isMyTriangle(p_tri))
         return const_cast<Triangle *>(p_tri);
@@ -89,7 +89,7 @@ Triangle * Stl::addTriangle(const Triangle * p_tri)
       return addTriangle(p_tri->_Points[0], p_tri->_Points[1], p_tri->_Points[2]);
 }
 
-void Stl::removeTriangle(Triangle * p_tri)
+void TriangleSurface::removeTriangle(Triangle * p_tri)
 {
     auto my_tri = _Triangles.find(p_tri);
     if (my_tri == _Triangles.end())
@@ -98,7 +98,7 @@ void Stl::removeTriangle(Triangle * p_tri)
     _Triangles.erase(my_tri);
 }
 
-bool Stl::isMyTriangle(const Triangle * p_tri) const
+bool TriangleSurface::isMyTriangle(const Triangle * p_tri) const
 {
   auto p_found_tri = _Triangles.find(const_cast<Triangle *>(p_tri));
   if (p_found_tri == _Triangles.end())
@@ -108,7 +108,7 @@ bool Stl::isMyTriangle(const Triangle * p_tri) const
   }
 
 
-bool Stl::isMyPoint(const Point * p_point) const
+bool TriangleSurface::isMyPoint(const Point * p_point) const
 {
     auto p_found_point = _Points.find(const_cast<Point *>(p_point));
     if (p_found_point == _Points.end())
@@ -117,7 +117,7 @@ bool Stl::isMyPoint(const Point * p_point) const
     return (*p_found_point == p_point);
 }
 
-Point * Stl::findPoint(const Math::Vector3dDouble & position) const
+Point * TriangleSurface::findPoint(const Math::Vector3dDouble & position) const
 {
     Point pt(position);
     auto p_found_point = _Points.find(&pt);

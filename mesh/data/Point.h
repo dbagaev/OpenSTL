@@ -14,7 +14,7 @@ namespace Data {
 class __mesh_DATA_EXPORT Point : public AttributeOwner, public IndexedKey<Point>
 {
 public:
-    friend class Stl;
+    friend class TriangleSurface;
 
     Point();
     Point(const Point & other);

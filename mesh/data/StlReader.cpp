@@ -1,6 +1,6 @@
 #include "StlReader.h"
 
-#include "Stl.h"
+#include "TriangleSurface.h"
 
 #include <cstring>
 
@@ -10,7 +10,7 @@ namespace mesh {
 
 namespace Impl {
 
-bool ReadASCIIStl(std::istream & is, Stl & o_stl)
+bool ReadASCIIStl(std::istream & is, TriangleSurface & o_stl)
 {
     // TODO : write this
 
@@ -33,7 +33,7 @@ bool ReadASCIIStl(std::istream & is, Stl & o_stl)
     return false;
 }
 
-bool ReadBinaryStl(std::istream & is, Stl & o_stl)
+bool ReadBinaryStl(std::istream & is, TriangleSurface & o_stl)
 {
     /*
     UINT8[80] – Header
@@ -95,7 +95,7 @@ bool ReadBinaryStl(std::istream & is, Stl & o_stl)
 
 }
 
-bool Data::ReadStl(std::istream & is, Stl & o_stl)
+bool Data::ReadStl(std::istream & is, TriangleSurface & o_stl)
 {
     char buffer[100];
     is.read(buffer, 5);
@@ -111,7 +111,7 @@ bool Data::ReadStl(std::istream & is, Stl & o_stl)
 
 }
 
-std::istream & operator >> (std::istream & is, mesh::Data::Stl & o_stl)
+std::istream & operator >> (std::istream & is, mesh::Data::TriangleSurface & o_stl)
 {
     ReadStl(is, o_stl);
     return is;

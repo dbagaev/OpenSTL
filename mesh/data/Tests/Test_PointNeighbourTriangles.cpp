@@ -1,4 +1,4 @@
-#include <Data/Stl.h>
+#include <Data/TriangleSurface.h>
 #include <Data/PointNeighbourTriangles.h>
 
 #include "gtest/gtest.h"
@@ -7,18 +7,18 @@ using namespace mesh;
 
 TEST(Test_PointNeighbourTriangles, Simple)
 {
-	Data::Stl stl;
+	Data::TriangleSurface surface;
 
 	Data::Point * ps[4];
-	ps[0] = stl.addPoint(0, 0, 0);
-	ps[1] = stl.addPoint(0, 100, 0);
-	ps[2] = stl.addPoint(0, 0, 100);
-    ps[3] = stl.addPoint(0, 100, 100);
+	ps[0] = surface.addPoint(0, 0, 0);
+	ps[1] = surface.addPoint(0, 100, 0);
+	ps[2] = surface.addPoint(0, 0, 100);
+    ps[3] = surface.addPoint(0, 100, 100);
 
 	Data::Triangle * p_tri[2];
-	p_tri[0] = stl.addTriangle(ps[0], ps[1], ps[2]);
+	p_tri[0] = surface.addTriangle(ps[0], ps[1], ps[2]);
 
-    Data::PointNeighbourTriangles neighbours(&stl);
+    Data::PointNeighbourTriangles neighbours(&surface);
 	neighbours.update();
 
 	EXPECT_EQ(1, neighbours.get(*ps[0]).size());
@@ -30,7 +30,7 @@ TEST(Test_PointNeighbourTriangles, Simple)
     EXPECT_EQ(p_tri[0], *neighbours.get(*ps[1]).begin());
     EXPECT_EQ(p_tri[0], *neighbours.get(*ps[2]).begin());
 
-    p_tri[1] = stl.addTriangle(ps[3], ps[2], ps[1]);
+    p_tri[1] = surface.addTriangle(ps[3], ps[2], ps[1]);
     neighbours.update();
 
     EXPECT_EQ(1, neighbours.get(*ps[0]).size());

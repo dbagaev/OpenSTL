@@ -195,16 +195,16 @@ size_t findIntersections(std::vector<cl_float4> & p00, std::vector<cl_float4> & 
 
 }
 
-size_t mesh::Algorithm::FindIntersections(Data::Stl & model)
+size_t mesh::Algorithm::FindIntersections(Data::TriangleSurface & surface)
 {
     // Set parameters and run algorithm
     std::vector<cl_float4> pts[3];
-    auto p_end_tri = model.endTriangle();
+    auto p_end_tri = surface.endTriangle();
 
     typedef std::pair<mesh::Data::Triangle *, double> tri_m_t;
     std::vector<tri_m_t> triangles;
-    triangles.reserve(model.getNumberTriangles());
-    for (auto p_tri = model.beginTriangle(); p_tri != p_end_tri; ++p_tri)
+    triangles.reserve(surface.getNumberTriangles());
+    for (auto p_tri = surface.beginTriangle(); p_tri != p_end_tri; ++p_tri)
     {
         const double m = std::min(p_tri->getPoint(0)->position()[2], std::min(p_tri->getPoint(1)->position()[2], p_tri->getPoint(2)->position()[2]));
         triangles.push_back(std::make_pair(&*p_tri, m));

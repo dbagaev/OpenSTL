@@ -4,7 +4,7 @@
 #define mesh_DATA_POINTNEIGHTBOURS_H_
 
 #include "Attributes.h"
-#include "Stl.h"
+#include "TriangleSurface.h"
 #include "Point.h"
 #include "Triangle.h"
 
@@ -28,10 +28,10 @@ private:
     typedef NeighbourData NeighbourDataPtr;
 
 protected:
-    Stl * _Stl;
+    TriangleSurface * _Stl;
 
 public:
-    PointNeighbours(Stl * p_stl) : _Stl(p_stl)
+    PointNeighbours(TriangleSurface * p_stl) : _Stl(p_stl)
     {
     }
 };
