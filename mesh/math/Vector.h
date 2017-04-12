@@ -19,7 +19,7 @@ struct VectorData
 template <typename T>
 struct VectorData<T, 2>
 {
-	VectorData() = default;
+    VectorData() : x(0), y(0) {};
 	VectorData(T x_, T y_) : x(x_), y(y_) {}
 
 	union {
@@ -37,7 +37,7 @@ struct VectorData<T, 2>
 template <typename T>
 struct VectorData<T, 3>
 {
-	VectorData() = default;
+	VectorData() : x(0), y(0), z(0) {};
 	VectorData(T x_, T y_, T z_) : x(x_), y(y_), z(z_) {}
 
 	union {
