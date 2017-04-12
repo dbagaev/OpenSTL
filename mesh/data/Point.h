@@ -6,10 +6,9 @@
 #include "Indexer.h"
 
 #include <math/Vector3d.h>
+#include <math/GeometryTraits.h>
 
-namespace mesh {
-
-namespace Data {
+namespace mesh { namespace Data {
 
 class __mesh_DATA_EXPORT Point : public AttributeOwner, public IndexedKey<Point>
 {
@@ -38,5 +37,21 @@ private:
     Math::Vector3d<double> _Position;
 };
 
-}  // namespace Data
-}  // namespace mesh
+} } // namespace mesh::Data
+
+
+namespace mesh { namespace Math {
+
+template <>
+struct GeometryTraits<mesh::Data::Point>
+{
+    typedef double value_type;
+    typedef Box<value_type, 3> box_type;
+
+    static box_type box(const mesh::Data::Point & p)
+    {
+        return box_type(p.position(), p.position());
+    }
+};
+
+} }
