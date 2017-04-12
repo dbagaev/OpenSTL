@@ -37,10 +37,16 @@ public:
         return r;
     }
 
-    static void numDimensions() { return D; }
+    static size_t numDimensions() { return D; }
 
-    const VectorT & min() const { return m_Min; }
-    const VectorT & max() const { return m_Max; }
+    const VectorT & minPosition() const { return m_Min; }
+    const VectorT & maxPosition() const { return m_Max; }
+    
+    T minPosition(size_t i) const { return m_Min[i]; }
+    T maxPosition(size_t i) const { return m_Max[i]; }
+
+    const VectorT size() const { return m_Max - m_Min; }
+    T size(size_t i) const { return m_Max[i] - m_Min[i]; }
 
 private:
     VectorT m_Min;
@@ -67,8 +73,8 @@ Box<T, D> operator &(const Box<T, D> & b1, const Box<T, D> & b2)
     Vector<T, D> r_max;
     for (size_t i = 0; i < D; ++i)
     {
-        r_min[i] = std::max(b1.min[i], b2.min[i]);
-        r_max[i] = std::min(b1.max[i], b2.max[i]);
+        r_min[i] = std::max(b1.minCorner[i], b2.minCorner[i]);
+        r_max[i] = std::min(b1.maxCorner[i], b2.maxCorner[i]);
         if (r_min[i] > r_max[i])
             return zero_box;
     }
@@ -82,8 +88,8 @@ Box<T, D> operator |(const Box<T, D> & b1, const Box<T, D> & b2)
     Vector<T, D> r_max;
     for (size_t i = 0; i < D; ++i)
     {
-        r_min[i] = std::min(b1.min()[i], b2.min()[i]);
-        r_max[i] = std::max(b1.max()[i], b2.max()[i]);
+        r_min[i] = std::min(b1.minPosition(i), b2.minPosition(i));
+        r_max[i] = std::max(b1.maxPosition(i), b2.maxPosition(i));
     }
     return Box<T, D>(r_min, r_max);
 }
