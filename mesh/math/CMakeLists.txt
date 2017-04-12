@@ -9,6 +9,9 @@ add_library(mesh.Math ALIAS Math)
 
 set_target_properties(Math PROPERTIES OUTPUT_NAME mesh-math)
 
+if ( BUILD_TESTING )
+    add_subdirectory(Tests)
+endif ( BUILD_TESTING )
 
 
 
