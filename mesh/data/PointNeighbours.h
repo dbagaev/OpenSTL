@@ -4,7 +4,6 @@
 #define mesh_DATA_POINTNEIGHTBOURS_H_
 
 #include "Attributes.h"
-#include "TriangleSurface.h"
 #include "Point.h"
 #include "Triangle.h"
 
@@ -14,6 +13,7 @@ namespace mesh {
 
 namespace Data {
 
+class TriangleSurface;
 
 template <typename Me, typename Neighbour>
 class Neighbours

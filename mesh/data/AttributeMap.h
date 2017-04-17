@@ -34,6 +34,11 @@ public:
         return m_Data[index];
     }
 
+    const KeyType & get(size_t index) const
+    {
+        return m_Data[index];
+    }
+
     void set(size_t index, const KeyType & value)
     {
         m_Data[index] = value;
@@ -64,6 +69,13 @@ public:
         return m_Data.get(index);
     }
 
+    const ValueType &get(const KeyType & key) const
+    {
+        size_t index = KeyIndexer::getIndex(key);
+        m_Data.ensureSize(index);
+        return m_Data.get(index);
+    }
+
     void set(const KeyType & key, ValueType & value)
     {
         size_t index = KeyIndexer::getIndex(key);
@@ -72,7 +84,7 @@ public:
     }
 
 private:
-    ContainerWrapper<ValueContainer> m_Data;
+    mutable ContainerWrapper<ValueContainer> m_Data;
 };
 
 
