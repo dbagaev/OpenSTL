@@ -8,6 +8,7 @@
 #include "Triangle.h"
 
 #include "Attributes.h"
+#include "PointNeighbourTriangles.h"
 
 #include <boost/iterator/iterator_facade.hpp>
 
@@ -20,6 +21,8 @@ namespace mesh {
 namespace Data {
 
 // class Triangle;
+
+class PointNeighbourTriangles;
 
 class __mesh_DATA_EXPORT TriangleSurface
 {
@@ -41,8 +44,14 @@ public:
     Triangle * addTriangle(const Triangle * p_tri);
     void removeTriangle(Triangle * p_tri);
 
+    void replacePointByPoint(Point * oldPoint, Point * newPoint);
+
     size_t getNumberPoints() const { return _Points.size(); }
     size_t getNumberTriangles() const { return _Triangles.size(); }
+
+    const PointNeighbourTriangles & pointNeighbours() {
+        return m_pointNeighbours;
+    }
 
     class PointIterator : public boost::iterator_facade < PointIterator, Point, boost::forward_traversal_tag >
     {
@@ -126,6 +135,8 @@ private:
     AttributesAllocMap<Triangle> _TrianglesAttributesAllocMap;
 
     Indexer<Point> m_PointIndexer;
+
+    PointNeighbourTriangles m_pointNeighbours;
 };
 
 template <typename OwnerType, typename DataType>

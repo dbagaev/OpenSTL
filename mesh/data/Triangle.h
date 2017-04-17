@@ -22,6 +22,9 @@ public:
 
     Point * getPoint(size_t idx) { return _Points[idx]; };
 
+protected:
+    void setPoint(size_t idx, Point * p_point) { _Points[idx] = p_point; };
+
 private:
     Triangle();
 

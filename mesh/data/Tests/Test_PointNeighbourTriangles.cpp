@@ -18,8 +18,7 @@ TEST(Test_PointNeighbourTriangles, Simple)
 	Data::Triangle * p_tri[2];
 	p_tri[0] = surface.addTriangle(ps[0], ps[1], ps[2]);
 
-    Data::PointNeighbourTriangles neighbours(&surface);
-	neighbours.update();
+    auto & neighbours = surface.pointNeighbours();
 
 	EXPECT_EQ(1, neighbours.get(*ps[0]).size());
 	EXPECT_EQ(1, neighbours.get(*ps[1]).size());
@@ -31,7 +30,6 @@ TEST(Test_PointNeighbourTriangles, Simple)
     EXPECT_EQ(p_tri[0], *neighbours.get(*ps[2]).begin());
 
     p_tri[1] = surface.addTriangle(ps[3], ps[2], ps[1]);
-    neighbours.update();
 
     EXPECT_EQ(1, neighbours.get(*ps[0]).size());
     EXPECT_EQ(2, neighbours.get(*ps[1]).size());
