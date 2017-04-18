@@ -7,6 +7,7 @@
 
 #include <math/Vector3d.h>
 #include <math/GeometryTraits.h>
+#include <math/Functions.h>
 
 namespace mesh { namespace Data {
 
@@ -45,13 +46,27 @@ namespace mesh { namespace Math {
 template <>
 struct GeometryTraits<mesh::Data::Point>
 {
+    typedef mesh::Data::Point point_type;
     typedef double value_type;
     typedef Box<value_type, 3> box_type;
 
-    static box_type box(const mesh::Data::Point & p)
+    static box_type box(const point_type & p)
     {
         return box_type(p.position(), p.position());
     }
 };
+
+template <typename T>
+bool intersects(const mesh::Data::Point & a, const Box<T, 3> & b)
+{
+    const auto p = a.position();
+    for (size_t i = 0; i < 3; ++i)
+    {
+        if (p[i] < b.minPosition(i) || p[i] > b.maxPosition(i))
+            return false;
+    }
+    return true;
+}
+
 
 } }

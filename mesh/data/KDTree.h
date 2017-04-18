@@ -99,14 +99,13 @@ public:
             }
         }
         auto boxes = m_Box.split(split_dim);
-        auto split_pos = boxes.first.maxPosition(split_dim);
 
         std::vector<element_type> left_elements, right_elements;
         for (const auto & element : elements)
         {
-            if (element.second.minPosition(split_dim) <= split_pos)
+            if (intersects(element.second, boxes.first) && intersects(element.first, boxes.first))
                 left_elements.emplace_back(element);
-            if (element.second.maxPosition(split_dim) >= split_pos)
+            if (intersects(element.second, boxes.second) && intersects(element.first, boxes.second))
                 right_elements.emplace_back(element);
         }
         

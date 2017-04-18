@@ -54,16 +54,15 @@ private:
 };
 
 template <typename T, size_t D>
-bool operator &&(const Box<T, D> & b1, const Box<T, D> & b2)
+bool intersects(const Box<T, D> & b1, const Box<T, D> & b2)
 {
     for (size_t i = 0; i < D; ++i)
     {
-        if (b1.m_Min[i] > b2.m_Max[i] || b1.m_Max[i] < b2.m_Min[i])
+        if (b1.minPosition(i) > b2.maxPosition(i) || b1.maxPosition(i) < b2.minPosition(i))
             return false;
     }
     return true;
 }
-
 
 template <typename T, size_t D>
 Box<T, D> operator &(const Box<T, D> & b1, const Box<T, D> & b2)
