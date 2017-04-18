@@ -1,5 +1,7 @@
 #include <Math/Box.h>
 #include <Math/Vector3d.h>
+#include <Math/Functions.h>
+#include <Math/GeometryTraits.h>
 
 #include "gtest/gtest.h"
 
@@ -57,4 +59,40 @@ TEST(Test_Box, Split)
     ASSERT_EQ(2, s2.second.maxPosition()[1]);
 
 
+}
+
+
+struct DummyTraitsTest
+{
+    DummyTraitsTest() : v(0) {}
+    DummyTraitsTest(int v_) : v(v_) {}
+
+    int v;
+};
+
+namespace mesh { namespace Math {
+
+bool intersects(const DummyTraitsTest & a, const int b)
+{
+    return a.v == b;
+}
+
+bool intersects(const int a, const DummyTraitsTest & b)
+{
+    return a == b.v;
+}
+
+
+} }
+
+TEST(Intersections, template)
+{
+    using mesh::Math::intersects;
+
+    DummyTraitsTest x(2);
+
+    ASSERT_TRUE(intersects(x, 2));
+    ASSERT_TRUE(intersects(2, x));
+    ASSERT_FALSE(intersects(x, 3));
+    ASSERT_FALSE(intersects(4, x));
 }
