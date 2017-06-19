@@ -6,16 +6,16 @@ using namespace mesh::Data;
 
 namespace mesh {
 
-Point::Point()
-{
-}
+    Point::Point()
+    {
+    }
 
-Point::Point(const Point & other) : _Position(other._Position)
-{
+    Point::Point(const Point & other) : _Position(other._Position)
+    {
 
-}
+    }
 
-Point::Point(double x, double y, double z) : _Position(x, y, z)
+Point::Point(double x, double y, double z) : _Position{x, y, z}
 {
 
 }

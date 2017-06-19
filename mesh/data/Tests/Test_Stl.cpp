@@ -46,12 +46,12 @@ TEST(Test_surface, Basic_Test)
     EXPECT_EQ(3, surface.getNumberPoints());
     EXPECT_EQ(1, surface.getNumberTriangles());
 
-    p_triangle = surface.addTriangle(Math::Vector3dDouble(0, 0, 0), Math::Vector3dDouble(100, 0, 0), Math::Vector3dDouble(0, 0, 100));
+    p_triangle = surface.addTriangle(Math::Vector3dDouble{0, 0, 0}, Math::Vector3dDouble{100, 0, 0}, Math::Vector3dDouble{0, 0, 100});
     EXPECT_FALSE(p_triangle == nullptr);
     EXPECT_EQ(4, surface.getNumberPoints());
     EXPECT_EQ(2, surface.getNumberTriangles());
 
-    p_triangle = surface.addTriangle(Math::Vector3dDouble(0, 0, 0), Math::Vector3dDouble(100, 0, 0), Math::Vector3dDouble(0, 0, 100));
+    p_triangle = surface.addTriangle(Math::Vector3dDouble{0, 0, 0}, Math::Vector3dDouble{100, 0, 0}, Math::Vector3dDouble{0, 0, 100});
     EXPECT_FALSE(p_triangle == nullptr);
     EXPECT_EQ(4, surface.getNumberPoints());
     EXPECT_EQ(3, surface.getNumberTriangles());

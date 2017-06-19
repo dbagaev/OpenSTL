@@ -7,10 +7,10 @@
 
 using namespace mesh::Math;
 
-TEST(Test_Box, Split) 
+TEST(Test_Box, Split)
 {
-    Vector<double, 3> c1(0, 0, 0);
-    Vector<double, 3> c2(2, 2, 2);
+    Vector<double, 3> c1{ 0, 0, 0 };
+    Vector<double, 3> c2{ 2, 2, 2 };
     Box<double, 3> bx(c1, c2);
 
     auto s0 = bx.split(0);
