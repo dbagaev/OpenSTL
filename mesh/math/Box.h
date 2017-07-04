@@ -14,11 +14,12 @@ public:
 
     Box() {};
     Box(const Box & b) : m_Min(b.m_Min), m_Max(b.m_Max) {}
-    Box(VectorT v1, VectorT v2) : m_Min(v1), m_Max(v2)
+    Box(const VectorT & v) : m_Min(v), m_Max(v) {}
+    Box(const VectorT & v1, const VectorT & v2) : m_Min(v1), m_Max(v2)
     {
         normalize();
     }
-
+    
     void normalize()
     {
         for (size_t i = 0; i < D; ++i)
@@ -37,10 +38,18 @@ public:
         return r;
     }
 
-    static void numDimensions() { return D; }
+    static size_t numDimensions() { return D; }
 
-    const VectorT & min() const { return m_Min; }
-    const VectorT & max() const { return m_Max; }
+    const VectorT & minPosition() const { return m_Min; }
+    const VectorT & maxPosition() const { return m_Max; }
+    
+    T minPosition(size_t i) const { return m_Min[i]; }
+    T maxPosition(size_t i) const { return m_Max[i]; }
+
+    const VectorT size() const { return m_Max - m_Min; }
+    T size(size_t i) const { return m_Max[i] - m_Min[i]; }
+
+    VectorT center() const { return (m_Max + m_Min) / 2; }
 
 private:
     VectorT m_Min;
@@ -48,16 +57,15 @@ private:
 };
 
 template <typename T, size_t D>
-bool operator &&(const Box<T, D> & b1, const Box<T, D> & b2)
+bool intersects(const Box<T, D> & b1, const Box<T, D> & b2)
 {
     for (size_t i = 0; i < D; ++i)
     {
-        if (b1.m_Min[i] > b2.m_Max[i] || b1.m_Max[i] < b2.m_Min[i])
+        if (b1.minPosition(i) > b2.maxPosition(i) || b1.maxPosition(i) < b2.minPosition(i))
             return false;
     }
     return true;
 }
-
 
 template <typename T, size_t D>
 Box<T, D> operator &(const Box<T, D> & b1, const Box<T, D> & b2)
@@ -67,8 +75,8 @@ Box<T, D> operator &(const Box<T, D> & b1, const Box<T, D> & b2)
     Vector<T, D> r_max;
     for (size_t i = 0; i < D; ++i)
     {
-        r_min[i] = std::max(b1.min[i], b2.min[i]);
-        r_max[i] = std::min(b1.max[i], b2.max[i]);
+        r_min[i] = std::max(b1.minCorner[i], b2.minCorner[i]);
+        r_max[i] = std::min(b1.maxCorner[i], b2.maxCorner[i]);
         if (r_min[i] > r_max[i])
             return zero_box;
     }
@@ -82,10 +90,34 @@ Box<T, D> operator |(const Box<T, D> & b1, const Box<T, D> & b2)
     Vector<T, D> r_max;
     for (size_t i = 0; i < D; ++i)
     {
-        r_min[i] = std::min(b1.min()[i], b2.min()[i]);
-        r_max[i] = std::max(b1.max()[i], b2.max()[i]);
+        r_min[i] = std::min(b1.minPosition(i), b2.minPosition(i));
+        r_max[i] = std::max(b1.maxPosition(i), b2.maxPosition(i));
     }
     return Box<T, D>(r_min, r_max);
+}
+
+template <typename T, size_t D>
+Box<T, D> operator |(const Box<T, D> & b, const Vector<T, D> & v)
+{
+    Vector<T, D> r_min;
+    Vector<T, D> r_max;
+    for (size_t i = 0; i < D; ++i)
+    {
+        r_min[i] = std::min(b.minPosition(i), v[i]);
+        r_max[i] = std::max(b.maxPosition(i), v[i]);
+    }
+    return Box<T, D>(r_min, r_max);
+}
+
+template <typename T1, typename T2, size_t D>
+bool intersects(const Box<T1, D> & b1, const Box<T2, D> & b2)
+{
+    for (size_t i = 0; i < D; ++i)
+    {
+        if (b1.maxPosition(i) < static_cast<T1>(b2.minPosition(i)) || b1.minPosition(i) > static_cast<T2>(b2.maxPosition()))
+            return false;
+    }
+    return true;
 }
 
 template <typename T>

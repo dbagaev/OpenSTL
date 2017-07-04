@@ -1,5 +1,6 @@
 #include <mesh/Data/TriangleSurface.h>
 #include <mesh/Data/StlReader.h>
+#include <mesh/Data/KDTree.h>
 
 #include <mesh/Algorithm/FindIntersections.h>
 #include <mesh/Algorithm/oclException.h>
@@ -19,6 +20,23 @@ int main(int argc, char ** argv)
         std::cout << "Model read!" << std::endl;
         std::cout << "  Points: " << surface.getNumberPoints() << std::endl;
         std::cout << "  Triangles: " << surface.getNumberTriangles() << std::endl;
+
+        // Try to build tree
+        mesh::Data::KDTree<mesh::Data::Point> point_tree(surface.beginPoint(), surface.endPoint());
+        std::cout << "Point tree created with " 
+            << point_tree.countNodes() << " nodes, " 
+            << point_tree.countLevels() << " levels, " 
+            << point_tree.averageDepth() << " avg depth"
+            << std::endl;
+
+        mesh::Data::KDTree<mesh::Data::Triangle> triangle_tree(surface.beginTriangle(), surface.endTriangle());
+        std::cout << "Triangle tree created with " 
+            << triangle_tree.countNodes() << " nodes, " 
+            << triangle_tree.countLevels() << " levels, " 
+            << triangle_tree.averageDepth() << " avg depth"
+            << std::endl;
+
+        std::cout << "End...";
 
     }
 

@@ -52,7 +52,7 @@ Point * TriangleSurface::addPoint(const Math::Vector3dDouble & position)
 
 Point * TriangleSurface::addPoint(double x, double y, double z)
 {
-    return addPoint(Math::Vector3dDouble(x, y, z));
+    return addPoint(Math::Vector3dDouble{ x, y, z });
 }
 
 void TriangleSurface::removePoint(Point * p_point)
